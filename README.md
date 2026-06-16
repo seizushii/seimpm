@@ -1,0 +1,2 @@
+# seimpm
+yapay zeka sağolsun.
