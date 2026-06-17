@@ -1,0 +1,2519 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>once besmele mk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        /* --- SEIZUSHI ULTRA DARK & GLOW THEME --- */
+        :root {
+            --bg-dark: #020204;
+            --glass-bg: rgba(10, 10, 15, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --neon-green: #4ade80;
+            --neon-blue: #38bdf8;
+            --neon-purple: #c084fc;
+            --neon-red: #f87171;
+            --neon-yellow: #facc15;
+            --neon-orange: #fb923c;
+            --blur-strength: 35px;
+            --radius-md: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ececec;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 12px;
+            background-image: radial-gradient(circle at 50% -20%, #1e1b4b 0%, transparent 50%), linear-gradient(to bottom, rgba(2, 2, 4, 0.92), rgba(2, 2, 4, 1)), url('https://sinoexpert.ru/wp-content/uploads/2025/11/main.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--glass-border);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+            input[type="checkbox"]:checked {
+                background: var(--neon-purple);
+                border-color: var(--neon-purple);
+                box-shadow: 0 0 10px var(--neon-purple);
+            }
+
+                input[type="checkbox"]:checked::after {
+                    content: '✔';
+                    position: absolute;
+                    color: #000;
+                    font-size: 12px;
+                    left: 2px;
+                    top: -1px;
+                }
+
+        .sidebar {
+            width: 80px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(25px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 25px 0;
+            align-items: center;
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #fff;
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            margin-bottom: 40px;
+            box-shadow: 0 0 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .nav-item {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            color: #a1a1aa;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.3s;
+            position: relative;
+        }
+
+            .nav-item svg {
+                width: 22px;
+                height: 22px;
+                fill: currentColor;
+            }
+
+            .nav-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            }
+
+            .nav-item.active {
+                background: rgba(124, 58, 237, 0.15);
+                color: var(--neon-purple);
+                border-color: rgba(124, 58, 237, 0.3);
+                box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+            }
+
+                .nav-item.active svg {
+                    fill: var(--neon-purple);
+                    filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.6));
+                }
+
+        .wrapper {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            padding: 25px;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+            .wrapper.active-tab {
+                display: flex;
+            }
+
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+            backdrop-filter: blur(var(--blur-strength));
+            transition: 0.4s ease;
+            flex-shrink: 0;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            transition: 0.3s;
+        }
+
+            input:focus, select:focus, textarea:focus {
+                border-color: var(--neon-blue);
+                box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+                outline: none;
+            }
+
+            select option {
+                background: #08080a;
+                color: #fff;
+                padding: 10px;
+            }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 15px 10px 40px !important;
+            margin-bottom: 0 !important;
+            border-radius: 12px !important;
+            background: rgba(0,0,0,0.5) !important;
+            color: var(--neon-blue) !important;
+            font-size: 11px !important;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        button {
+            padding: 11px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: 0.3s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-blue { background: rgba(56, 189, 248, 0.15); color: var(--neon-blue); border-color: rgba(56, 189, 248, 0.4); }
+        .btn-blue:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
+        .btn-yellow { background: rgba(250, 204, 21, 0.15); color: var(--neon-yellow); border-color: rgba(250, 204, 21, 0.4); }
+        .btn-yellow:hover { background: var(--neon-yellow); color: #000; box-shadow: 0 0 20px var(--neon-yellow); }
+        .btn-red { background: rgba(248, 113, 113, 0.1); color: var(--neon-red); border-color: rgba(248, 113, 113, 0.3); }
+        .btn-red:hover { background: var(--neon-red); color: #000; box-shadow: 0 0 25px var(--neon-red); }
+        .btn-green { background: rgba(74, 222, 128, 0.15); color: var(--neon-green); border-color: rgba(74, 222, 128, 0.4); }
+        .btn-green:hover { background: var(--neon-green); color: #000; box-shadow: 0 0 20px var(--neon-green); }
+        .btn-purple { background: rgba(124, 58, 237, 0.1); color: var(--neon-purple); border-color: rgba(124, 58, 237, 0.3); }
+        .btn-purple:hover { background: var(--neon-purple); color: #000; box-shadow: 0 0 25px var(--neon-purple); }
+        .btn-orange { background: rgba(251, 146, 60, 0.15); color: var(--neon-orange); border-color: rgba(251, 146, 60, 0.4); }
+        .btn-orange:hover { background: var(--neon-orange); color: #000; box-shadow: 0 0 20px var(--neon-orange); }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .chip-group { display: flex; gap: 8px; }
+
+        .chip {
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 30px;
+            color: #777;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid transparent;
+            font-weight: 600;
+        }
+
+            .chip.active {
+                color: var(--neon-green);
+                border-color: var(--neon-green);
+                background: rgba(74, 222, 128, 0.05);
+                box-shadow: 0 0 10px rgba(110, 231, 183, 0.2);
+            }
+
+        #pauseBtn.paused { color: var(--neon-red); border-color: var(--neon-red); box-shadow: 0 0 15px rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.05); }
+        #pauseBtn.running { color: var(--neon-green); border-color: var(--neon-green); box-shadow: 0 0 15px rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.05); }
+
+        .log-card-container { flex: 2; display: flex; flex-direction: column; min-height: 550px; }
+        .console { background-color: rgba(0,0,0,0.5); border-radius: 14px; flex: 1; overflow-y: auto; padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 11px; box-shadow: inset 0 0 30px #000; }
+
+        .packet-row { padding: 6px 10px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.02); color: #d4d4d8; cursor: pointer; word-break: break-all; transition: 0.2s; border-left: 3px solid transparent; }
+        .packet-row:hover { background: rgba(255, 255, 255, 0.05); padding-left: 14px; }
+        .packet-row.selected { background: rgba(56, 189, 248, 0.15) !important; border-left-color: var(--neon-blue) !important; box-shadow: inset 0 0 15px rgba(56, 189, 248, 0.2); }
+        
+        .packet-row.matched { border-left-color: var(--neon-orange) !important; background: rgba(251, 146, 60, 0.1) !important; text-shadow: 0 0 8px var(--neon-orange); }
+        .packet-row.target-gid-match { border-left-color: var(--neon-red) !important; background: rgba(248, 113, 113, 0.15) !important; color: #fca5a5 !important; text-shadow: 0 0 10px var(--neon-red); }
+
+        .c2s-row { border-left-color: var(--neon-blue); color: #bae6fd; }
+        .s2c-row { border-left-color: var(--neon-yellow); color: #fef08a; }
+        .my-id-row { border-left-color: var(--neon-green) !important; background: rgba(74, 222, 128, 0.05) !important; color: #86efac !important; font-weight: bold; text-shadow: 0 0 10px var(--neon-green); }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0 4px; margin-top: 5px; }
+        th { text-align: left; padding: 10px; color: #71717a; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.7rem; text-transform: uppercase; }
+        th.sortable:hover { color: var(--neon-blue); background: rgba(255,255,255,0.05); }
+        td { padding: 10px; background: rgba(255,255,255,0.02); font-size: 0.75rem; white-space: nowrap; transition: 0.2s; cursor: pointer; }
+        td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        .db-row:hover td { background: rgba(255,255,255,0.05); color: #fff; }
+
+        .expand-panel { margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); display: none; animation: fadeIn 0.3s ease; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 10px; }
+
+        .db-panel-container { display: flex; gap: 20px; flex: 1; min-height: 0; }
+        .db-left { flex: 2; display: flex; flex-direction: column; overflow: hidden; }
+        .db-right { flex: 1; background: rgba(0,0,0,0.4); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 12px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); overflow: hidden; position: sticky; top: 0; align-self: flex-start; height: calc(100vh - 90px); }
+
+        .db-item-list { overflow-y: auto; flex: 1; padding-right: 5px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .db-item-btn { width: 100%; text-align: left; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); color: #ccc; padding: 10px 12px; border-radius: 8px; font-size: 11px; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; }
+        .db-item-btn:hover { background: rgba(192, 132, 252, 0.1) !important; border-color: var(--neon-purple) !important; }
+
+        .selection-summary { background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; font-size: 10px; color: #aaa; border: 1px solid rgba(255,255,255,0.05); min-height: 50px; }
+        .summary-title { color: var(--neon-blue); font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 3px; }
+
+        .detail-row { display: none; background: transparent !important; }
+        .detail-row.open { display: table-row; animation: fadeIn 0.3s ease; }
+        .detail-panel { background: rgba(0,0,0,0.5); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); padding: 15px; display: flex; flex-direction: column; gap: 15px; margin: 5px 0 15px 0; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); }
+
+        .detail-stats { display: flex; gap: 15px; }
+        .stat-box { flex: 1; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; }
+        .stat-label { color: #777; font-size: 9px; margin-bottom: 5px; text-transform: uppercase; }
+        .stat-value { color: var(--neon-blue); font-family: 'JetBrains Mono'; font-size: 11px; }
+
+        .nick-history { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; }
+        .nick-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+        .nick-chip { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 12px; font-size: 10px; color: #ccc; }
+        .nick-chip span { color: #555; font-size: 8px; margin-left: 5px; }
+
+        .queue-list { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; max-height: 100px; overflow-y: auto; margin-top: 10px; }
+        .queue-item { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; border-bottom: 1px solid rgba(255,255,255,0.02); padding: 4px 0; }
+        .queue-item:last-child { border-bottom: none; }
+        .queue-item span { color: var(--neon-blue); font-family: 'JetBrains Mono'; }
+
+        .counter-text { text-align: center; font-family: 'JetBrains Mono'; font-weight: bold; margin-top: 10px; font-size: 13px; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(12px); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { width: 500px; background: #08080a; border: 1px solid var(--neon-purple); padding: 30px; border-radius: 20px; box-shadow: 0 0 100px rgba(0,0,0,1); }
+
+        .hex-text-btn {
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 11px;
+            font-weight: 400; 
+            text-align: left; 
+            width: 100%;
+            cursor: pointer;
+            padding: 0;
+            word-break: break-all;
+            white-space: normal;
+        }
+        .hex-text-btn:hover {
+            color: var(--neon-blue);
+            text-decoration: underline;
+        }
+
+        .detected-gids-list {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .detected-gid-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column-reverse; }
+            .sidebar { width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 0 10px; }
+            .sidebar-header { display: none; }
+            .nav-menu { flex-direction: row; gap: 15px; width: auto; }
+            .wrapper { padding: 15px; padding-bottom: 90px; }
+            .grid-layout { grid-template-columns: 1fr; }
+            .db-panel-container { flex-direction: column; height: auto; }
+            .db-right { position: relative; height: auto; max-height: 500px; }
+            .detail-stats { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header" title="MStar Analyzer"><span>🐉</span></div>
+        <div class="nav-menu">
+            <button class="nav-item active" id="btnMain" onclick="switchTab('main')" data-tooltip="Ana Sayfa"><svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg></button>
+            <button class="nav-item" id="btnGid" onclick="switchTab('gid')" data-tooltip="Kişi & Eşya Database"><svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z" /></svg></button>
+            <button class="nav-item" id="btnHex" onclick="switchTab('hex')" data-tooltip="Hex Kural Database"><svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" /></svg></button>
+            <button class="nav-item" id="btnItem" onclick="switchTab('item')" data-tooltip="Eşya Veritabanı (JSON)"><svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></svg></button>
+        </div>
+        <div style="margin-top: auto; color: #52525b; font-size: 1.2rem;">⚡</div>
+    </aside>
+
+    <div class="wrapper active-tab" id="mainTab">
+        <div class="grid-layout">
+            <div class="glass-card">
+                <div class="title" style="color: var(--neon-blue);">C2S Edit (Giden)</div>
+                <input type="text" id="c2sf" placeholder="Aranacak Hex">
+                <input type="text" id="c2sr" placeholder="Değiştirilecek Hex">
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-blue" style="flex:1" onclick="applyRuleTemporary('C2S')">GÜNCELLE</button>
+                    <button class="btn-green" style="flex:1" onclick="openSaveRuleModal('C2S')">KAYDET</button>
+                </div>
+            </div>
+            <div class="glass-card">
+                <div class="title" style="color: var(--neon-yellow);">S2C Edit (Gelen)</div>
+                <input type="text" id="s2cf" placeholder="Aranacak Hex">
+                <input type="text" id="s2cr" placeholder="Değiştirilecek Hex">
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-yellow" style="flex:1" onclick="applyRuleTemporary('S2C')">GÜNCELLE</button>
+                    <button class="btn-green" style="flex:1" onclick="openSaveRuleModal('S2C')">KAYDET</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <div class="title" style="color: var(--neon-red);">Injector & Auto-Responder</div>
+            <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                <select id="injectDir" style="width: 90px; margin-bottom: 0;"><option value="C2S">C2S</option><option value="S2C">S2C</option></select>
+                <textarea id="rawHex" placeholder="Hex kodlarını buraya girin (XX arttırma desteklenir)..." style="flex: 2; height: 85px; margin-bottom: 0;"></textarea>
+                <div style="display:flex; flex-direction:column; gap:6px; flex:1;">
+                    <input type="text" id="hexVar" placeholder="XX Değeri" style="margin-bottom: 0;">
+                    <div style="display:flex; gap:6px; flex: 1;">
+                        <button class="btn-red" style="flex:1; padding: 1;" onclick="injectPacket()">TEKLİ</button>
+                        <button class="btn-orange" style="flex:1; padding: 1;" onclick="injectBulkPacket()">TOPLU</button>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button class="btn-green" style="flex: 1;" onclick="openSaveOptionsModal()">💾 KAYDET (SEÇENEKLİ)</button>
+                <button class="btn-blue" onclick="togglePanel('intervalPanel')">⏱ INT</button>
+                <button class="btn-purple" onclick="togglePanel('triggerPanel')">⚡ TRIG</button>
+                <button class="btn-orange" onclick="togglePanel('incrementalPanel')">🔄 LOOP</button>
+                <button class="btn-red" style="background: rgba(236, 72, 153, 0.15); color: #ec4899; border-color: rgba(236, 72, 153, 0.4);" onclick="togglePanel('converterPanel')">🧮 HEX</button>
+            </div>
+
+            <div id="converterPanel" class="expand-panel">
+                <div style="font-size: 10px; color: #ec4899; margin-bottom: 8px; font-weight: bold;">GoodsID ➔ Little-Endian Hex Çevirici</div>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" id="convGoodsId" placeholder="18 Haneli GoodsID (Örn: 910220000000007401)" style="flex:2; margin-bottom:0;">
+                    <button class="btn-green" onclick="convertGoodsId()" style="flex:1;">HESAPLA</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="convResult" placeholder="Sonuç (Örn: E9DC747744C0A10C)" readonly style="flex:2; margin-bottom:0; color: var(--neon-yellow);">
+                    <button class="btn-blue" onclick="copyConverterResult(event)" style="flex:1;">KOPYALA</button>
+                </div>
+            </div>
+
+            <div id="intervalPanel" class="expand-panel">
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="intCount" placeholder="Tekrar" value="1000">
+                    <input type="number" id="intDelay" placeholder="Hız (ms)" value="100">
+                    <button class="btn-yellow" id="startIntBtn" style="flex:1;" onclick="runInterval()">BAŞLAT</button>
+                    <button class="btn-red" id="stopIntBtn" style="flex:1; display:none;" onclick="stopInterval()">DURDUR</button>
+                </div>
+                <div class="counter-text" id="intCounterTxt" style="color:var(--neon-yellow);">Durum: Bekleniyor...</div>
+            </div>
+
+            <div id="incrementalPanel" class="expand-panel">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="incStart" placeholder="Baş (Hex)" value="00">
+                    <input type="text" id="incEnd" placeholder="Bit (Hex)" value="10">
+                    <input type="number" id="incDelay" placeholder="Hız (ms)" value="100">
+                    <button class="btn-orange" id="startIncBtn" style="flex:1;" onclick="runIncremental()">BAŞLAT</button>
+                    <button class="btn-red" id="stopIncBtn" style="flex:1; display:none;" onclick="stopIncremental()">DURDUR</button>
+                    <button class="btn-blue" style="flex:1;" onclick="addLoopToQueue()">+ SIRAYA EKLE</button>
+                </div>
+                <div class="counter-text" id="incCounterTxt" style="color:var(--neon-orange);">Durum: Bekleniyor...</div>
+
+                <div class="queue-list" id="queueListContainer" style="display: none;">
+                    <div style="color:var(--neon-blue); font-weight:bold; margin-bottom:5px; font-size:11px;">Sıradaki Görevler</div>
+                    <div id="loopQueueItems"></div>
+                </div>
+            </div>
+
+            <div id="triggerPanel" class="expand-panel">
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" id="trigListen" placeholder="Tetik Hex" style="flex:2; margin-bottom:0;">
+                    <select id="trigListenDir" style="flex:1; margin-bottom:0;"><option value="C2S">C2S Dinle</option><option value="S2C">S2C Dinle</option></select>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" id="trigResp" placeholder="Cevap Hex" style="flex:2; margin-bottom:0;">
+                    <select id="trigRespDir" style="flex:1; margin-bottom:0;"><option value="C2S">C2S Yolla</option><option value="S2C">S2C Yolla</option></select>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="trigName" placeholder="Tetik İsmi" style="flex: 2; margin-bottom:0;">
+                    <input type="number" id="trigDelay" placeholder="Delay(ms)" value="0" style="flex: 1; margin-bottom:0;">
+                    <button class="btn-purple" onclick="addTrigger()">EKLE</button>
+                </div>
+                <div style="margin-top: 15px; max-height: 120px; overflow-y: auto;">
+                    <table style="font-size: 10px;"><thead><tr><th>Aktif</th><th>İsim</th><th>Sil</th></tr></thead><tbody id="triggerTableBody"></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card log-card-container">
+            <div class="log-header">
+                <div class="chip-group">
+                    <div class="chip active" id="ALL" onclick="setFilter('ALL')">TÜMÜ</div>
+                    <div class="chip" id="C2S" onclick="setFilter('C2S')">GİDEN</div>
+                    <div class="chip" id="S2C" onclick="setFilter('S2C')">GELEN</div>
+                    <div class="chip" style="color: var(--neon-purple); border-color: var(--neon-purple);" id="ppsCounter">0 PPS</div>
+                </div>
+                <div class="chip-group">
+                    <button class="chip running" id="pauseBtn" onclick="togglePause()">⏸ DURDUR</button>
+                    <button class="chip" onclick="clearLogs()">TEMİZLE</button>
+                    <button class="chip" id="sortBtn" onclick="toggleSort()">🔃 ÜST</button>
+                </div>
+            </div>
+            <div class="console" id="logs"></div>
+        </div>
+    </div>
+
+    <div id="hexDetailModal" class="modal-overlay">
+        <div class="glass-card modal-content" style="border-color: var(--neon-blue); width: 600px;">
+            <div class="title" style="color: var(--neon-blue); justify-content: center; font-size: 1.2rem; margin-bottom: 20px;">🔍 HEX DETAY ANALİZİ</div>
+            
+            <div style="margin-bottom: 10px; font-weight: bold; color: #ccc;">Ham Hex:</div>
+            <textarea id="modalDetailRawHex" rows="4" readonly style="font-size: 10px; margin-bottom: 15px; cursor: text;"></textarea>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <div style="margin-bottom: 5px; font-weight: bold; color: var(--neon-yellow);">ASCII (ANSI-TR) Çözümü:</div>
+                    <textarea id="modalDetailAscii" rows="5" readonly style="font-size: 10px; color: var(--neon-yellow); background: rgba(0,0,0,0.5); cursor: text;"></textarea>
+                </div>
+                <div>
+                    <div style="margin-bottom: 5px; font-weight: bold; color: var(--neon-green);">UTF-16LE Çözümü:</div>
+                    <textarea id="modalDetailUtf16" rows="5" readonly style="font-size: 10px; color: var(--neon-green); background: rgba(0,0,0,0.5); cursor: text;"></textarea>
+                </div>
+            </div>
+
+            <div id="modalGidMatchArea" style="display: none; background: rgba(251, 146, 60, 0.15); border: 1px solid var(--neon-orange); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <div style="color: var(--neon-orange); font-weight: bold; margin-bottom: 8px;" id="matchTitleText">⚠️ GID(LER) TESPİT EDİLDİ!</div>
+                <div id="detectedGidsList" class="detected-gids-list">
+                    </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-blue" style="flex: 1;" onclick="copyDetailedHex()">KOPYALA</button>
+                <button class="btn-red" style="flex: 1;" onclick="document.getElementById('hexDetailModal').style.display='none'">KAPAT</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="wrapper" id="gidTab">
+        <div class="glass-card" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="db-panel-container">
+                <div class="db-left">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div class="title" style="color: var(--neon-green); margin-bottom: 0;">⚡ Güncel Oyuncular (Son 40)</div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-green" style="font-size: 10px; padding: 6px 12px;" onclick="addSelectedRecentToDb()">➕ DB'YE EKLE</button>
+                            <button class="btn-red" style="font-size: 10px; padding: 6px 12px;" onclick="deleteSelectedRecent()">🗑️ SİL</button>
+                            <div style="width: 1px; background: rgba(255,255,255,0.1); margin: 0 2px;"></div>
+                            <button class="btn-purple" style="font-size: 10px; padding: 6px 12px;" onclick="openBatchModal(false)">⚡ HERKESE</button>
+                            <button class="btn-blue" style="font-size: 10px; padding: 6px 12px;" onclick="openBatchModal(true)">📍 SEÇİLİLERE</button>
+                        </div>
+                    </div>
+                    <div class="console" style="max-height: 250px; margin-bottom: 15px; flex: none;">
+                        <table id="recentGidTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;"><input type="checkbox" id="selectAllRecent" onclick="toggleAllRecent()"></th>
+                                    <th>NICKNAME</th>
+                                    <th>GID (HEX)</th>
+                                    <th>GID (DEC)</th>
+                                    <th>İŞLEM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentGidTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div class="title" style="color: var(--neon-blue); margin-bottom: 0;">📊 Tüm Kayıtlı Oyuncular Veritabanı</div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-red" style="font-size: 10px; padding: 6px 12px;" onclick="deleteSelectedDb()">🗑️ SEÇİLİLERİ SİL</button>
+                            <button class="btn-green" style="font-size: 10px; padding: 6px 12px;" onclick="openAddGidModal()">➕ YENİ OYUNCU EKLE</button>
+                        </div>
+                    </div>
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" id="gidSearch" onkeyup="searchApiAndFilter(event)" placeholder="Kayıtlılarda veya API'de Nickname ara (Enter'a bas)...">
+                    </div>
+                    <div id="apiLoader" style="display: none; color: var(--neon-yellow); font-size: 10px; margin-bottom: 10px; text-align: center;">⏳ API'den veri aranıyor, lütfen bekleyin...</div>
+                    <div class="console" style="min-height: 400px; flex: 1;">
+                        <table id="gidTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;"><input type="checkbox" id="selectAllGid" onclick="toggleAllGids()"></th>
+                                    <th>NICKNAME</th>
+                                    <th>GID (HEX)</th>
+                                    <th>GID (DEC)</th>
+                                    <th>İŞLEM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gidTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="db-right">
+                    <div class="title" style="color: var(--neon-purple); justify-content: center;">📦 Hazır Eşya Gönderimi</div>
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                        <select id="dbCategory" onchange="loadCategoryItems()" style="margin-bottom: 0; background: rgba(0,0,0,0.8); border-color: var(--neon-purple); color: var(--neon-purple); flex: 1;">
+                            <option value="">-- Kategori Seçin --</option>
+                        </select>
+                        <button class="btn-green" style="padding: 0 15px;" onclick="openCategoryEditModal()" title="Yeni Kategori/Eşya Ekle">+</button>
+                    </div>
+
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" id="itemSearch" onkeyup="filterItemList()" placeholder="Oyun veritabanında (JSON) ara...">
+                    </div>
+
+                    <div class="db-item-list" id="dbItemList">
+                        <div style="text-align:center; color:#555; margin-top:20px; font-style:italic;">Yükleniyor...</div>
+                    </div>
+
+                    <div class="selection-summary">
+                        <div class="summary-title">SEÇİM ÖZETİ</div>
+                        <div id="summaryText">Seçilen Eşya: 0 | Seçilen Kişi: 0</div>
+                        <div id="summaryItems" style="color: var(--neon-green); margin-top: 3px; font-style: italic; font-size: 9px; word-wrap: break-word;"></div>
+                    </div>
+
+                    <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);">
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-blue" style="flex:1; font-size: 10px; padding: 12px 5px;" onclick="sendDbItemToSelected(false)">📍 SEÇİLİLERE</button>
+                            <button class="btn-purple" style="flex:1; font-size: 10px; padding: 12px 5px;" onclick="sendDbItemToSelected(true)">⚡ HERKESE</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrapper" id="hexTab">
+        <div class="glass-card" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="title" style="color: var(--neon-blue);">📜 Kayıtlı Paketler (Hex DB)</div>
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="hexSearch" onkeyup="filterTable('hexTableBody', 0, 'hexSearch')" placeholder="Kayıt ismi ile ara...">
+            </div>
+            <div class="console" style="max-height: 35%; margin-bottom: 20px;">
+                <table id="hexTable"><thead><tr><th>İSİM</th><th>YÖN</th><th>İŞLEM</th></tr></thead><tbody id="hexTableBody"></tbody></table>
+            </div>
+            <div class="title" style="color: var(--neon-yellow);">🛠️ Manipülasyon Kuralları (Auto-Replace)</div>
+            <div class="console" style="flex: 1;">
+                <table><thead><tr><th style="width: 50px;">AKTİF</th><th>İSİM</th><th style="width: 50px;">YÖN</th><th>İŞLEM</th></tr></thead><tbody id="rulesTableBody"></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrapper" id="itemTab">
+        <div class="glass-card" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="title" style="color: var(--neon-green);">📦 Ultimate Item Veritabanı</div>
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="ultimateSearch" onkeyup="filterUltimateTable()" placeholder="Eşya Adı, Hex veya Fiyat ile tabloda genel arama yapın...">
+            </div>
+            <div class="console" style="flex: 1; overflow: auto; padding: 0;">
+                <table id="ultimateTable" style="margin-top: 0; min-width: 900px;">
+                    <thead style="position: sticky; top: 0; background: var(--bg-dark); z-index: 1;">
+                        <tr>
+                            <th onclick="sortUltimateTable(0)" class="sortable" style="cursor:pointer;" title="Sıralamak için tıklayın">Kıyafet Adı ↕</th>
+                            <th onclick="sortUltimateTable(1)" class="sortable" style="cursor:pointer; color:var(--neon-purple);" title="Sıralamak için tıklayın">ProductID (Hex) ↕</th>
+                            <th onclick="sortUltimateTable(2)" class="sortable" style="cursor:pointer;" title="Sıralamak için tıklayın">Hex Kodu ↕</th>
+                            <th>
+                                Süre / Tür <br>
+                                <select id="filterDuration" onchange="filterUltimateTable()" style="margin-top: 5px; font-size: 9px; padding: 2px; width: auto; min-width: 60px;">
+                                    <option value="">--Tümü--</option>
+                                </select>
+                            </th>
+                            <th onclick="sortUltimateTable(4)" class="sortable" style="cursor:pointer;" title="Sıralamak için tıklayın">Fiyat ↕</th>
+                            <th onclick="sortUltimateTable(5)" class="sortable" style="cursor:pointer; color:var(--neon-orange);" title="Sıralamak için tıklayın">SellEnd (Hex) ↕</th>
+                            <th>
+                                Ana Kategori <br>
+                                <select id="filterMainCat" onchange="filterUltimateTable()" style="margin-top: 5px; font-size: 9px; padding: 2px; width: auto; min-width: 80px;">
+                                    <option value="">--Tümü--</option>
+                                </select>
+                            </th>
+                            <th>
+                                Alt Kategori <br>
+                                <select id="filterSubCat" onchange="filterUltimateTable()" style="margin-top: 5px; font-size: 9px; padding: 2px; width: auto; min-width: 80px;">
+                                    <option value="">--Tümü--</option>
+                                </select>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="ultimateTableBody">
+                        <tr><td colspan="8" style="text-align: center; color: #777; padding: 20px;">Veriler Yükleniyor...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="addGidModal" class="modal-overlay">
+        <div class="glass-card modal-content" style="border-color: var(--neon-green); width: 500px;">
+            <div class="title" style="color: var(--neon-green); justify-content: center; font-size: 1.2rem; margin-bottom: 20px;">➕ YENİ OYUNCU EKLE</div>
+            <div id="singleGidArea" style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px;">
+                <label style="font-size: 10px; color: #aaa; margin-left: 5px;">Nickname</label>
+                <input type="text" id="newGidNick" placeholder="Örn: Seizushi">
+                <label style="font-size: 10px; color: #aaa; margin-left: 5px;">GID (Hex)</label>
+                <input type="text" id="newGidHex" placeholder="Örn: 9F7A2500" onkeyup="autoCalculateDec()">
+                <label style="font-size: 10px; color: #aaa; margin-left: 5px;">GID (Decimal) - Otomatik Hesaplanır</label>
+                <input type="text" id="newGidDec" placeholder="Örn: 2456223">
+                <button class="btn-green" style="width: 100%; margin-top: 10px;" onclick="saveManualGid()">TEK OYUNCU KAYDET</button>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <div style="font-size: 10px; color: var(--neon-orange);">Toplu Oyuncu Ekleme (Log/Excel Kopyası)</div>
+                    <button class="btn-yellow" style="font-size: 9px; padding: 4px 8px;" onclick="toggleBulkGidArea()">AÇ / KAPAT</button>
+                </div>
+                <div id="bulkGidArea" style="display: none; margin-top: 10px;">
+                    <div style="font-size: 9px; color: #777; margin-bottom: 5px;">Format: Nickname | GID(Dec) | GID(Hex)</div>
+                    <textarea id="bulkGidData" rows="6" placeholder="SpeTra    800033099    4B89AF2F"></textarea>
+                    <button class="btn-orange" style="width: 100%;" onclick="saveBulkGid()">TOPLU LİSTEYİ KAYDET</button>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-red" style="width: 100%;" onclick="closeAddGidModal()">PENCEREYİ KAPAT</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="saveOptionsModal" class="modal-overlay">
+        <div class="glass-card modal-content" style="border-color: var(--neon-blue);">
+            <div class="title" style="color: var(--neon-blue); justify-content: center; font-size: 1.2rem; margin-bottom: 20px;">💾 KAYIT TİPİ SEÇİN</div>
+            <input type="text" id="saveOptionName" placeholder="Örn: Hızlı Dans Paketi">
+            <select id="saveOptionTarget"><option value="HEX">📜 Hex Database (Standart)</option><option value="GID">📊 GID Database (Toplu Şablon)</option></select>
+            <div style="display: flex; gap: 10px; margin-top: 20px;"><button class="btn-green" style="flex: 1;" onclick="confirmSaveOption()">KAYDET</button><button class="btn-red" style="flex: 1;" onclick="document.getElementById('saveOptionsModal').style.display='none'">İPTAL</button></div>
+        </div>
+    </div>
+
+    <div id="batchModal" class="modal-overlay">
+        <div class="glass-card modal-content" style="width: 600px; border-color: var(--neon-purple);">
+            <div class="title" style="color: var(--neon-purple); justify-content: center; font-size: 1.2rem; margin-bottom: 20px;">⚡ UYGULANACAK ŞABLONU SEÇİN</div>
+            <div class="console" style="max-height: 300px;"><table style="font-size: 11px;"><thead><tr><th>ŞABLON ADI</th><th>SEÇİM</th><th>EDİT</th><th>SİL</th></tr></thead><tbody id="batchTableBody"></tbody></table></div>
+            <div style="display: flex; margin-top: 15px;"><button class="btn-red" style="width: 100%;" onclick="closeBatchModal()">PENCEREYİ KAPAT</button></div>
+        </div>
+    </div>
+
+    <div id="ruleSaveModal" class="modal-overlay">
+        <div class="glass-card modal-content" style="border-color: var(--neon-green);">
+            <div class="title" style="color: var(--neon-green); justify-content: center; font-size: 1.2rem; margin-bottom: 20px;">💾 KURALI VERİTABANINA EKLE</div>
+            <input type="text" id="saveModalName" placeholder="Kural Adı">
+            <input type="text" id="saveModalDir" disabled style="opacity:0.4;">
+            <textarea id="saveModalFind" rows="3" placeholder="Aranan Hex (Örn: FFFE01...)"></textarea>
+            <textarea id="saveModalReplace" rows="3" placeholder="Yeni Hex (Örn: 000000...)"></textarea>
+            <div style="display: flex; gap: 10px; margin-top: 15px;"><button class="btn-green" style="flex: 1;" onclick="confirmSaveRule()">LİSTEYE EKLE</button><button class="btn-red" style="flex: 1;" onclick="document.getElementById('ruleSaveModal').style.display='none'">İPTAL</button></div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal-overlay">
+        <div class="glass-card modal-content" style="border-color: var(--neon-yellow);">
+            <div class="title" style="color: var(--neon-yellow); justify-content: center; font-size: 1.2rem; margin-bottom: 20px;">📝 KAYIT GÜNCELLEME</div>
+            <input type="text" id="modalName" placeholder="İsim">
+            <select id="modalDir"><option value="C2S">C2S (Giden)</option><option value="S2C">S2C (Gelen)</option></select>
+            <label id="modalFindLabel" style="font-size: 10px; color: #aaa; margin-left: 5px;">Mevcut Hex Kodu</label>
+            <textarea id="modalHex" rows="5"></textarea>
+            <div id="modalReplaceArea" style="display:none;">
+                <label style="font-size: 10px; color: #aaa; margin-left: 5px;">Yerine Geçecek Kod (Replace)</label>
+                <textarea id="modalReplace" rows="3"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;"><button class="btn-green" style="flex: 1;" onclick="saveEditChanges()">GÜNCELLE</button><button class="btn-red" style="flex: 1;" onclick="closeEditModal()">İPTAL</button></div>
+        </div>
+    </div>
+
+    <div id="dropModal" class="modal-overlay">
+        <div class="glass-card modal-content" style="border-color: var(--neon-red);">
+            <div class="title" style="color: var(--neon-red); justify-content: center; font-size: 1.5rem; margin-bottom: 20px; text-shadow: 0 0 20px var(--neon-red);">🎯 HEDEF YAKALANDI</div>
+            <div id="dropContent" style="text-align: center; margin-bottom: 20px; font-size: 1.1rem; color: #fff;"></div>
+            <div style="display: flex; gap: 10px;"><button class="btn-red" style="flex: 2; padding: 15px; font-size: 1.2rem;" onclick="executeDrop()">💣 BAĞLANTIYI DÜŞÜR</button><button class="btn-blue" style="flex: 1;" onclick="document.getElementById('dropModal').style.display='none'">İPTAL</button></div>
+        </div>
+    </div>
+
+    <div id="categoryEditModal" class="modal-overlay">
+        <div class="glass-card modal-content" style="border-color: var(--neon-green); width: 600px;">
+            <div class="title" style="color: var(--neon-green); justify-content: center; font-size: 1.2rem; margin-bottom: 20px;">⚙️ EŞYA VERİTABANI YÖNETİMİ</div>
+            <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                <select id="manageCategorySelect" style="flex: 1;" onchange="loadManageItems()">
+                    <option value="new">-- YENİ KATEGORİ OLUŞTUR --</option>
+                </select>
+            </div>
+            <div id="newCategoryArea" style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px;">
+                <div style="font-size: 10px; color: var(--neon-blue); margin-bottom: 5px;">Yeni Kategori Adı ve ID'si (Örn: tops / Üst Giyim)</div>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="newCatId" placeholder="Kısa ID (Örn: pets2)" style="flex: 1; margin-bottom: 0;">
+                    <input type="text" id="newCatName" placeholder="Görünen Ad (Örn: Özel Petler)" style="flex: 2; margin-bottom: 0;">
+                </div>
+                <div style="font-size: 10px; color: var(--neon-yellow); margin-bottom: 5px;">Bu Kategori İçin Ana Hex Şablonu ({GID} ve {ITEM} değişkenlerini kullanın)</div>
+                <textarea id="newCatTemplate" rows="3" placeholder="FFFE01...{GID}...{ITEM}...FEFF"></textarea>
+                <button class="btn-green" style="width: 100%;" onclick="saveNewCategory()">KATEGORİYİ KAYDET</button>
+            </div>
+            <div id="manageItemArea" style="display: none; flex-direction: column; gap: 10px;">
+                <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size: 10px; color: var(--neon-green); margin-bottom: 5px;">Bu Kategoriye Yeni Eşya Ekle</div>
+                    <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                        <input type="text" id="newItemName" placeholder="Eşya Adı" style="flex: 2; margin-bottom: 0;">
+                        <input type="text" id="newItemHex" placeholder="Hex ID (Örn: 04F03C267527)" style="flex: 2; margin-bottom: 0;">
+                    </div>
+                    <button class="btn-blue" style="width: 100%;" onclick="saveNewItem()">TEK EŞYA EKLE</button>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <div style="font-size: 10px; color: var(--neon-orange);">Toplu Eşya Ekleme</div>
+                        <button class="btn-yellow" style="font-size: 9px; padding: 4px 8px;" onclick="toggleBulkAddArea()">AÇ / KAPAT</button>
+                    </div>
+                    <div id="bulkAddArea" style="display: none; margin-top: 10px;">
+                        <div style="font-size: 9px; color: #777; margin-bottom: 5px;">Format: HEX = Eşya Adı (Örn: C035ECFC065E = VV)</div>
+                        <textarea id="bulkItemData" rows="5" placeholder="1961ECFC065E = kar tanesi&#10;1441ECFC065E = parti maker"></textarea>
+                        <button class="btn-orange" style="width: 100%;" onclick="saveBulkItems()">TOPLU LİSTEYİ KAYDET</button>
+                    </div>
+                </div>
+                <div style="font-size: 10px; color: #aaa;">Mevcut Eşyalar (Silmek için X'e basın)</div>
+                <div class="console" style="max-height: 150px; padding: 5px;" id="manageItemList"></div>
+                <button class="btn-red" style="margin-top: 10px;" onclick="deleteSelectedCategory()">BU KATEGORİYİ TAMAMEN SİL</button>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-purple" style="width: 100%;" onclick="document.getElementById('categoryEditModal').style.display='none'">PENCEREYİ KAPAT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentFilter = 'ALL', isPaused = false, currentSaveDir = "", isSelectionMode = false, tempSingleGid = null, sortTop = true;
+
+        let packetCount = 0;
+
+        let ultimateSortCol = "";
+        let ultimateSortAsc = true;
+
+        let activeInterval = null;
+        let activeIncInterval = null;
+        let loopQueue = [];
+        let isLooping = false;
+
+        let gidMap = JSON.parse(localStorage.getItem('gid_map') || '{}');
+        let recentGids = [];
+
+        const API_BASE_URL = "http://127.0.0.1:3000";
+        const API_PASSWORD = "search";
+        const GID_RANGE = { MIN: 800000000, MAX: 800399999 };
+
+        const charMap = {
+            "т": "t", "ü": "u", "я": "r", "κ": "k", "ε": "e", "ş": "s", "ı": "i", "ğ": "g", "ö": "o", "ç": "c",
+            "İ": "i", "Ş": "s", "Ğ": "g", "Ü": "u", "Ö": "o", "Ç": "c", "ς": "s", "ħ": "h", "ù": "u", "ķ": "k",
+            "ч": "y", "L": "l", "σ": "o", "a": "a", "Ｃ": "c", "Ｅ": "e", "Ł": "l", "Ｉ": "i", "Ｎ": "n", "α": "a",
+            "β": "b", "γ": "g", "м": "m", "и": "n", "ρ": "p", "x": "x", "у": "y", "z": "z", "Δ": "a", "θ": "o", "λ": "l"
+        };
+
+        function normalizeString(str) {
+            if (!str) return "";
+            let res = "";
+            for (let i = 0; i < str.length; i++) {
+                res += charMap[str[i]] || str[i];
+            }
+            return res.toLowerCase();
+        }
+
+        function hexToUtf16LE(hex) {
+            if (!hex) return "";
+            let cleanHex = hex.replace(/[\s\n\r]/g, '');
+            let str = "";
+            for (let i = 0; i < cleanHex.length - 1; i += 4) {
+                let low = cleanHex.substr(i, 2);
+                let high = cleanHex.substr(i + 2, 2);
+                if (low.length < 2 || high.length < 2) break; 
+                let charCode = parseInt(high + low, 16);
+                if ((charCode >= 0x0020 && charCode <= 0x007E) || 
+                    (charCode >= 0x00A0 && charCode <= 0x024F) || 
+                    (charCode >= 0x1E00 && charCode <= 0x1EFF)) { 
+                    str += String.fromCharCode(charCode);
+                } else {
+                    str += ".";
+                }
+            }
+            return str;
+        }
+
+        function hexToAscii(hex) {
+            if (!hex) return "";
+            let cleanHex = hex.replace(/[\s\n\r]/g, '');
+            let ascii = "";
+            for (let i = 0; i < cleanHex.length; i += 2) {
+                let byteHex = cleanHex.substr(i, 2);
+                if (byteHex.length < 2) break;
+                let code = parseInt(byteHex, 16);
+                if (code >= 32 && code <= 126) {
+                    ascii += String.fromCharCode(code);
+                } else {
+                    switch (code) {
+                        case 0xC7: ascii += 'Ç'; break; case 0xE7: ascii += 'ç'; break;
+                        case 0xD0: ascii += 'Ğ'; break; case 0xF0: ascii += 'ğ'; break;
+                        case 0xDD: ascii += 'İ'; break; case 0xFD: ascii += 'ı'; break;
+                        case 0xD6: ascii += 'Ö'; break; case 0xF6: ascii += 'ö'; break;
+                        case 0xDE: ascii += 'Ş'; break; case 0xFE: ascii += 'ş'; break;
+                        case 0xDC: ascii += 'Ü'; break; case 0xFC: ascii += 'ü'; break;
+                        default: ascii += "."; break;
+                    }
+                }
+            }
+            return ascii;
+        }
+
+        let currentModalHex = "";
+        let currentDetectedGids = []; 
+
+        // === YAPAY ZEKA: İSİM TEMİZLEME VE DOĞRULAMA MANTIĞI ===
+        function isGarbageName(nick) {
+            if (!nick || nick === "Bilinmiyor" || nick.includes("Oto. Tespit")) return true;
+            if (nick.length < 3) return true; // 2 veya 1 harfli kelimeler genelde hex artığı çöp veridir
+            if (/^[0-9A-Fa-f]+$/.test(nick)) return true; // Sadece Hex sayıysa kesinlikle isim değildir
+            return false;
+        }
+
+        function extractNameFromHex(cleanHex, startIndex) {
+            let foundName = "";
+            let localSearchLimit = Math.min(cleanHex.length - 4, startIndex + 8 + 100);
+
+            for (let k = startIndex + 8; k < localSearchLimit; k += 2) {
+                let possibleLen = parseInt(cleanHex.substr(k, 2), 16);
+                if (possibleLen >= 2 && possibleLen <= 16) { 
+                    let tempName = "";
+                    let isValid = true;
+                    let strStart = k + 2;
+                    if (strStart + (possibleLen * 4) <= cleanHex.length) {
+                        for (let j = 0; j < possibleLen; j++) {
+                            let low = cleanHex.substr(strStart + (j * 4), 2);
+                            let high = cleanHex.substr(strStart + (j * 4) + 2, 2);
+                            let charCode = parseInt(high + low, 16);
+
+                            if ((charCode >= 0x20 && charCode <= 0x7E) || 
+                                (charCode >= 0xC0 && charCode <= 0x2AF) ||
+                                (charCode >= 0x1E00 && charCode <= 0x1EFF)) {
+                                tempName += String.fromCharCode(charCode);
+                            } else {
+                                isValid = false;
+                                break;
+                            }
+                        }
+                        if (isValid && tempName.length === possibleLen) {
+                            if (/[a-zA-ZÀ-ÿÇçĞğİıÖöŞşÜü]/.test(tempName)) {
+                                foundName = tempName;
+                                break; 
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!foundName) {
+                let longestStr = "";
+                for (let k = startIndex + 8; k < localSearchLimit; k += 2) {
+                    let tempStr = "";
+                    for (let j = k; j < localSearchLimit; j += 4) {
+                        let low = cleanHex.substr(j, 2);
+                        let high = cleanHex.substr(j + 2, 2);
+                        if (!low || !high || high.length < 2) break;
+                        let charCode = parseInt(high + low, 16);
+                        
+                        if ((charCode >= 0x20 && charCode <= 0x7E) || 
+                            (charCode >= 0xC0 && charCode <= 0x2AF) ||
+                            (charCode >= 0x1E00 && charCode <= 0x1EFF)) {
+                            tempStr += String.fromCharCode(charCode);
+                        } else {
+                            break;
+                        }
+                    }
+                    if (tempStr.length > longestStr.length && tempStr.length <= 16) {
+                        longestStr = tempStr;
+                    }
+                }
+                if (longestStr.length >= 2 && /[a-zA-ZÀ-ÿÇçĞğİıÖöŞşÜü]/.test(longestStr)) {
+                    foundName = longestStr;
+                }
+            }
+            
+            // Eğer bulduğumuz şey sadece HEX kodundan ibaretse, onu isim kabul etmiyoruz
+            if (foundName && /^[0-9A-Fa-f]+$/.test(foundName)) {
+                foundName = ""; 
+            }
+            return foundName || "Bilinmiyor";
+        }
+
+        // ==========================================
+        // YENİ MİMARİ: GÜNCEL LİSTE VE DB AYRIMI
+        // ==========================================
+
+        // SADECE GÜNCEL RADARA (SON 40) YAZAN FONKSİYON
+        function addRecentGid(targetHex, targetNick, targetDec, skipRender = false) {
+            if (!targetHex) return;
+            const now = new Date().toLocaleString();
+            let nickToSave = targetNick === "(Sistemden/Oto. Tespit)" ? "Bilinmiyor" : targetNick;
+
+            // Zeka Algoritması 1: Gelen isim çöp ise ve Kalıcı DB'de düzgünü varsa, radarın güzel görünmesi için DB'den çek
+            if (isGarbageName(nickToSave) && gidMap[targetHex] && !isGarbageName(gidMap[targetHex].currentNick)) {
+                nickToSave = gidMap[targetHex].currentNick;
+            }
+
+            let existingIdx = recentGids.findIndex(g => g.gidHex === targetHex);
+            let needsReorder = false;
+
+            if (existingIdx !== -1) {
+                let existingObj = recentGids[existingIdx];
+                existingObj.lastSeen = now;
+                
+                // Zeka Algoritması 2: İsim İyileştirme (Kendi Kendini Tamir)
+                // Eğer Radar'da kayıtlı olan eski isim çöp ise, ve paketlerden gelen yeni isim DÜZGÜN ise, eskisini at, yenisini koy!
+                if (isGarbageName(existingObj.nickname) && !isGarbageName(nickToSave)) {
+                    if (!existingObj.history) existingObj.history = [];
+                    if (existingObj.nickname !== "Bilinmiyor" && !existingObj.history.some(h => h.nick === existingObj.nickname)) {
+                        existingObj.history.unshift({ nick: existingObj.nickname, date: now });
+                    }
+                    existingObj.nickname = nickToSave;
+                }
+                
+                // GID Radarda tekrar görüldüğü için listeyi sars ve adamı en tepeye zıplat
+                if (existingIdx !== 0) {
+                    recentGids.splice(existingIdx, 1);
+                    recentGids.unshift(existingObj);
+                    needsReorder = true;
+                } else {
+                    needsReorder = true; 
+                }
+            } else {
+                // Eğer sistem ilk defa bulduysa ve ismi çöp ise, listede "Bilinmiyor" yazsın (Görüntü kirliliğini önler)
+                if (isGarbageName(nickToSave)) nickToSave = "Bilinmiyor";
+
+                recentGids.unshift({
+                    gidHex: targetHex,
+                    gidDec: targetDec,
+                    nickname: nickToSave,
+                    firstSeen: now,
+                    lastSeen: now,
+                    history: []
+                });
+                needsReorder = true;
+            }
+
+            if (recentGids.length > 200) recentGids.pop(); 
+
+            if (needsReorder && !skipRender) {
+                renderRecentGidTable();
+            }
+        }
+
+        // SADECE KALICI DB'YE (TÜM KAYITLILAR) YAZAN FONKSİYON
+        function addDbGid(targetHex, targetNick, targetDec, skipRender = false) {
+            if (!targetHex) return;
+            const now = new Date().toLocaleString();
+            let nickToSave = targetNick === "(Sistemden/Oto. Tespit)" ? "Bilinmiyor" : targetNick;
+
+            if (gidMap[targetHex]) {
+                const existingData = gidMap[targetHex];
+                existingData.lastSeen = now;
+                
+                // Kalıcı DB'de de İyileştirme çalışır
+                if (isGarbageName(existingData.currentNick) && !isGarbageName(nickToSave)) {
+                    if (!existingData.history) existingData.history = [];
+                    if (existingData.currentNick !== "Bilinmiyor" && !existingData.history.some(h => h.nick === existingData.currentNick)) {
+                        existingData.history.unshift({ nick: existingData.currentNick, date: now });
+                    }
+                    existingData.currentNick = nickToSave;
+                }
+            } else {
+                gidMap[targetHex] = { currentNick: nickToSave, gidDec: targetDec, firstSeen: now, lastSeen: now, history: [] };
+            }
+
+            localStorage.setItem('gid_map', JSON.stringify(gidMap));
+            if (!skipRender) renderGidTable();
+        }
+
+        window.addSelectedRecentToDb = function() {
+            let checkedBoxes = document.querySelectorAll('#recentGidTableBody .gid-check:checked');
+            if (checkedBoxes.length === 0) return alert("Veritabanına eklemek için oyuncu seçilmedi!");
+            
+            let addedCount = 0;
+            let checkedGids = new Set(Array.from(checkedBoxes).map(c => c.value));
+            
+            recentGids.forEach(g => {
+                if (checkedGids.has(g.gidHex)) {
+                    addDbGid(g.gidHex, g.nickname, g.gidDec, true);
+                    addedCount++;
+                }
+            });
+            
+            if (addedCount > 0) {
+                renderGidTable();
+                alert(addedCount + " adet oyuncu Veritabanına başarıyla eklendi!");
+                checkedBoxes.forEach(c => c.checked = false);
+                updateSummary();
+            }
+        };
+
+        window.deleteSelectedRecent = function() {
+            let checkedBoxes = document.querySelectorAll('#recentGidTableBody .gid-check:checked');
+            if (checkedBoxes.length === 0) return alert("Silinecek oyuncu seçmediniz!");
+            if (!confirm(checkedBoxes.length + " adet oyuncuyu Güncel listeden silmek istediğinize emin misiniz?")) return;
+            
+            let checkedGids = new Set(Array.from(checkedBoxes).map(c => c.value));
+            recentGids = recentGids.filter(g => !checkedGids.has(g.gidHex));
+            renderRecentGidTable();
+            updateSummary();
+            document.getElementById('selectAllRecent').checked = false;
+        };
+
+        window.deleteSelectedDb = function() {
+            let checkedBoxes = document.querySelectorAll('#gidTableBody .gid-check:checked');
+            if (checkedBoxes.length === 0) return alert("Silinecek oyuncu seçmediniz!");
+            if (!confirm(checkedBoxes.length + " adet oyuncuyu Veritabanından silmek istediğinize emin misiniz?")) return;
+            
+            let checkedGids = Array.from(checkedBoxes).map(c => c.value);
+            checkedGids.forEach(hex => {
+                delete gidMap[hex];
+            });
+            localStorage.setItem('gid_map', JSON.stringify(gidMap));
+            renderGidTable();
+            updateSummary();
+            document.getElementById('selectAllGid').checked = false;
+        };
+
+
+        window.openHexDetail = function (hexCode, preDetectedGidHex = null) {
+            currentModalHex = hexCode;
+            document.getElementById('modalDetailRawHex').value = hexCode;
+            document.getElementById('modalDetailAscii').value = hexToAscii(hexCode);
+            document.getElementById('modalDetailUtf16').value = hexToUtf16LE(hexCode);
+
+            document.querySelectorAll('.packet-row').forEach(row => row.classList.remove('selected'));
+
+            if (event && event.currentTarget && event.currentTarget.closest('.packet-row')) {
+                event.currentTarget.closest('.packet-row').classList.add('selected');
+            }
+
+            currentDetectedGids = [];
+
+            try {
+                let cleanHex = hexCode.replace(/[\s\n\r]/g, "").toUpperCase();
+
+                if (preDetectedGidHex) {
+                    let reversedHex = preDetectedGidHex.match(/.{1,2}/g).reverse().join('');
+                    let possibleGidDec = parseInt(reversedHex, 16);
+                    let n = extractNameFromHex(cleanHex, cleanHex.indexOf(preDetectedGidHex));
+                    
+                    let knownDbName = gidMap[preDetectedGidHex] ? gidMap[preDetectedGidHex].currentNick : null;
+                    if ((n === "Bilinmiyor" || !n) && knownDbName && knownDbName !== "Bilinmiyor") {
+                        n = knownDbName;
+                    }
+                    
+                    if(n === "Bilinmiyor") n = "(Sistemden/Oto. Tespit)";
+                    currentDetectedGids.push({ hex: preDetectedGidHex, dec: possibleGidDec, nick: n });
+                }
+
+                let searchLimit = Math.min(cleanHex.length - 4, cleanHex.length);
+                
+                for (let i = 0; i < searchLimit; i += 2) {
+                    let possibleGidHex = cleanHex.substr(i, 8);
+                    if (possibleGidHex.length < 8) continue;
+                    
+                    let reversedHex = possibleGidHex.match(/.{1,2}/g).reverse().join('');
+                    let possibleGidDec = parseInt(reversedHex, 16);
+
+                    if (possibleGidDec >= GID_RANGE.MIN && possibleGidDec <= GID_RANGE.MAX) {
+                        let foundName = extractNameFromHex(cleanHex, i);
+                        
+                        let knownDbName = gidMap[possibleGidHex] ? gidMap[possibleGidHex].currentNick : null;
+                        if ((foundName === "Bilinmiyor" || !foundName) && knownDbName && knownDbName !== "Bilinmiyor") {
+                            foundName = knownDbName;
+                        }
+
+                        if (foundName !== "Bilinmiyor") {
+                            if (!currentDetectedGids.some(g => g.hex === possibleGidHex)) {
+                                currentDetectedGids.push({ hex: possibleGidHex, dec: possibleGidDec, nick: foundName });
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("GID tarama hatası:", e);
+            }
+
+            const matchArea = document.getElementById('modalGidMatchArea');
+            const gidsListContainer = document.getElementById('detectedGidsList');
+            gidsListContainer.innerHTML = ""; 
+
+            if (currentDetectedGids.length > 0) {
+                document.getElementById('matchTitleText').innerText = `⚠️ ${currentDetectedGids.length} ADET GID TESPİT EDİLDİ!`;
+                
+                currentDetectedGids.forEach((gidObj, index) => {
+                    const gidItem = document.createElement('div');
+                    gidItem.className = 'detected-gid-item';
+                    
+                    const gidJson = JSON.stringify(gidObj).replace(/"/g, '&quot;');
+                    
+                    gidItem.innerHTML = `
+                        <div>
+                            <div style="font-size: 11px;">Nick: <span style="color: #fff; font-weight: bold;">${gidObj.nick}</span></div>
+                            <div style="font-size: 10px; color: #aaa;">GID (Hex): <span style="color: var(--neon-blue); font-family:'JetBrains Mono';">${gidObj.hex}</span> | GID (Dec): <span>${gidObj.dec}</span></div>
+                        </div>
+                        <button class="btn-orange" style="padding: 4px 10px; font-size: 9px;" onclick="addSpecificGid(this, '${gidObj.hex}', '${gidObj.nick}', ${gidObj.dec})">DB'YE KAYDET</button>
+                    `;
+                    gidsListContainer.appendChild(gidItem);
+                });
+                
+                matchArea.style.display = 'block';
+
+                if (event && event.currentTarget && event.currentTarget.closest('.packet-row') && !preDetectedGidHex) {
+                    event.currentTarget.closest('.packet-row').classList.add('matched');
+                }
+            } else {
+                matchArea.style.display = 'none';
+                if (event && event.currentTarget && event.currentTarget.closest('.packet-row')) {
+                    event.currentTarget.closest('.packet-row').classList.remove('matched');
+                }
+            }
+
+            document.getElementById('hexDetailModal').style.display = 'flex';
+        };
+
+        function copyDetailedHex() {
+            navigator.clipboard.writeText(currentModalHex);
+            const btn = event.target;
+            const oldText = btn.innerText;
+            btn.innerText = "✔ ALINDI";
+            btn.style.color = "var(--neon-green)";
+            setTimeout(() => { btn.innerText = oldText; btn.style.color = ""; }, 1000);
+        }
+
+        window.addSpecificGid = function(btnElement, targetHex, targetNick, targetDec) {
+            addDbGid(targetHex, targetNick, targetDec); 
+            
+            if (btnElement && btnElement.style) {
+                const oldText = btnElement.innerText;
+                btnElement.innerText = "✔ DB'YE EKLENDİ!";
+                btnElement.style.backgroundColor = "rgba(74, 222, 128, 0.2)";
+                btnElement.style.color = "var(--neon-green)";
+                btnElement.style.borderColor = "var(--neon-green)";
+
+                setTimeout(() => {
+                    btnElement.innerText = oldText;
+                    btnElement.style.backgroundColor = "";
+                    btnElement.style.color = "";
+                    btnElement.style.borderColor = "";
+                }, 1500);
+            }
+        };
+
+        let TEMPLATES = JSON.parse(localStorage.getItem('custom_templates')) || {
+            general: "FFFE018B000000B6000000197E00100000004200610073006500500072006F006300{GID}201601000A200440170669007A00750048200D005BE0020F045D0020006B2017006C20010661006E00310163200300732003026E00646011022000672055006C2003006E200B006820070064204B007920074000000140040E5C07687C678E0300{ITEM}876013E0160001000001FEFF"
+        };
+        TEMPLATES["server_db"] = "FFFE013500000046000000165200100000004200610073006500500072006F0063000120131100E3BB057A678E0300{ITEM}FF4014E00B0001000001FEFF";
+
+        let CATEGORY_NAMES = JSON.parse(localStorage.getItem('category_names')) || {
+            general: "📁 Genel Kategori"
+        };
+
+        let ITEM_DATABASE = JSON.parse(localStorage.getItem('custom_db')) || {
+            general: [
+                { name: "Örnek Eşya", hex: "000000000000", tpl: "general" }
+            ]
+        };
+
+        const DEFAULT_HEX_DB = [
+            { name: "Sleep (Uyuma)", hex: "BURAYA_HEX_GELECEK", dir: "C2S" },
+            { name: "Wake (Uyanma)", hex: "BURAYA_HEX_GELECEK", dir: "C2S" },
+            { name: "40x Paket", hex: "BURAYA_HEX_GELECEK", dir: "C2S" }
+        ];
+
+        const DEFAULT_GID_DB = [
+            { name: "Drop Users (Truva)", hex: "XXXXXXXX", dir: "C2S" }
+        ];
+
+        let savedHexDB = JSON.parse(localStorage.getItem('hex_db'));
+        if (!savedHexDB || savedHexDB.length === 0) { localStorage.setItem('hex_db', JSON.stringify(DEFAULT_HEX_DB)); }
+
+        let savedGidDB = JSON.parse(localStorage.getItem('gid_code_db'));
+        if (!savedGidDB || savedGidDB.length === 0) { localStorage.setItem('gid_code_db', JSON.stringify(DEFAULT_GID_DB)); }
+
+        let globalGameItems = [];
+
+        async function fetchGameDatabase() {
+            try {
+                const res = await fetch('/api/game-items');
+                globalGameItems = await res.json();
+
+                if (globalGameItems.length > 0) {
+                    populateCategorySelects();
+                    const select = document.getElementById('dbCategory');
+                    select.value = 'server_db';
+                    loadCategoryItems();
+                }
+            } catch (e) {
+                console.log("Oyun veritabanı JSON yüklenemedi.");
+            }
+        }
+
+        function renderGameDatabaseItems(items) {
+            const listDiv = document.getElementById('dbItemList');
+            listDiv.innerHTML = "";
+
+            if (items.length === 0) {
+                listDiv.innerHTML = "<div style='color:#777; text-align:center;'>Sonuç bulunamadı...</div>";
+                return;
+            }
+
+            items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'db-item-btn';
+
+                let color = item.duration === "Sınırsız" ? "var(--neon-yellow)" : "var(--neon-blue)";
+                let priceText = item.price === 0 ? "Ücretsiz" : item.price + " Nakit";
+
+                btn.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; width:100%;">
+                                <strong style="color: ${color};">${item.name}</strong>
+                                <span style="color:#888; font-size:9px;">${item.sex} | ${item.duration}</span>
+                            </div>
+                            <div style="color:#555; font-size:9px; margin-top:3px;">Hex: ${item.hex} | Fiyat: ${priceText}</div>
+                        `;
+
+                if (selectedDbItems.findIndex(i => i.hex === item.hex) > -1) {
+                    btn.style.borderColor = 'var(--neon-green)';
+                    btn.style.background = 'rgba(74, 222, 128, 0.1)';
+                }
+
+                btn.onclick = (e) => {
+                    const existingIdx = selectedDbItems.findIndex(i => i.hex === item.hex);
+                    if (existingIdx > -1) {
+                        selectedDbItems.splice(existingIdx, 1);
+                        btn.style.borderColor = 'rgba(255,255,255,0.05)';
+                        btn.style.background = 'rgba(255,255,255,0.03)';
+                    } else {
+                        selectedDbItems.push({ name: item.name, hex: item.hex, tpl: TEMPLATES["server_db"] });
+                        btn.style.borderColor = 'var(--neon-green)';
+                        btn.style.background = 'rgba(74, 222, 128, 0.1)';
+                    }
+                    updateSummary();
+                };
+                listDiv.appendChild(btn);
+            });
+        }
+
+        function populateCategorySelects() {
+            const selects = [document.getElementById('dbCategory'), document.getElementById('manageCategorySelect')];
+
+            selects.forEach(select => {
+                if (!select) return;
+                while (select.options.length > 1) select.remove(1);
+
+                if (select.id === 'dbCategory' && globalGameItems.length > 0) {
+                    const opt = document.createElement("option");
+                    opt.value = 'server_db';
+                    opt.text = '🌟 JSON EŞYA VERİTABANI (TÜMÜ)';
+                    select.appendChild(opt);
+                }
+
+                Object.keys(CATEGORY_NAMES).forEach(key => {
+                    const option = document.createElement("option");
+                    option.value = key;
+                    option.text = CATEGORY_NAMES[key];
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        async function fetchUltimateData() {
+            try {
+                const res = await fetch('/api/ultimate-filters');
+                const filters = await res.json();
+
+                const fillSelect = (id, arr) => {
+                    const select = document.getElementById(id);
+                    arr.forEach(val => {
+                        const opt = document.createElement("option");
+                        opt.value = val; opt.text = val;
+                        select.appendChild(opt);
+                    });
+                };
+
+                fillSelect('filterDuration', filters.durations);
+                fillSelect('filterMainCat', filters.mainCats);
+                fillSelect('filterSubCat', filters.subCats);
+
+                filterUltimateTable();
+            } catch (e) {
+                console.error("Ultimate Veritabanı API'sine ulaşılamadı: ", e);
+                document.getElementById('ultimateTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--neon-red); padding: 20px;">Hata: Ultimate_Matched_Results.json sunucu tarafından okunamadı.<br><br><span style="font-size:10px; color:#aaa;">(Neden: ${e.message})</span><br><br>Lütfen "server.js" dosyasının doğru klasörde çalıştığından ve JSON'ları okuyabildiğinden emin olun.</td></tr>`;
+            }
+        }
+
+        async function filterUltimateTable() {
+            const searchTxt = document.getElementById('ultimateSearch').value.trim();
+            const duration = document.getElementById('filterDuration').value;
+            const mainCat = document.getElementById('filterMainCat').value;
+            const subCat = document.getElementById('filterSubCat').value;
+
+            document.getElementById('ultimateTableBody').innerHTML = '<tr><td colspan="8" style="text-align: center; color: #777; padding: 20px;">Aranıyor... Lütfen Bekleyin ⏳</td></tr>';
+
+            const params = new URLSearchParams();
+            if (searchTxt) params.append('search', searchTxt);
+            if (duration) params.append('duration', duration);
+            if (mainCat) params.append('mainCat', mainCat);
+            if (subCat) params.append('subCat', subCat);
+            if (ultimateSortCol) {
+                params.append('sortBy', ultimateSortCol);
+                params.append('sortAsc', ultimateSortAsc);
+            }
+
+            try {
+                const res = await fetch('/api/ultimate-items?' + params.toString());
+                const result = await res.json();
+                renderUltimateTable(result.data, result.total);
+            } catch (e) {
+                document.getElementById('ultimateTableBody').innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--neon-red); padding: 20px;">Arama Hatası! ${e.message}</td></tr>`;
+            }
+        }
+
+        function sortUltimateTable(colIdx) {
+            const keys = [
+                "Kiyafet Adi (Name)", "Kiyafet ID Hex", "Little Endian HEX",
+                "Sure / Tur", "Fiyat Num", "Paket / Satis Adi",
+                "Ana Kategori", "Alt Kategori"
+            ];
+            const key = keys[colIdx];
+
+            if (ultimateSortCol === key) {
+                ultimateSortAsc = !ultimateSortAsc;
+            } else {
+                ultimateSortCol = key;
+                ultimateSortAsc = true;
+            }
+            filterUltimateTable();
+        }
+
+        function renderUltimateTable(data, totalCount) {
+            const tbody = document.getElementById('ultimateTableBody');
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#aaa; padding:20px;">Aradığınız kriterlere uygun sonuç bulunamadı.</td></tr>';
+                return;
+            }
+
+            let htmlContent = '';
+
+            data.forEach(item => {
+                let priceColor = item["Fiyat Num"] === 0 ? "var(--neon-green)" : "var(--neon-orange)";
+                if (item["Fiyat Num"] === -1) priceColor = "#777";
+
+                htmlContent += `
+                            <tr class="db-row">
+                                <td>${item["Kiyafet Adi (Name)"]}</td>
+                                <td><span style="color:var(--neon-purple); font-family:'JetBrains Mono'; font-weight:bold; font-size:11px;">${item["ProductID Hex"]}</span></td>
+                                <td style="color:var(--neon-blue); font-family:'JetBrains Mono'; font-weight:bold;">${item["Little Endian HEX"]}</td>
+                                <td style="color:var(--neon-yellow);">${item["Sure / Tur"]}</td>
+                                <td style="color:${priceColor}; font-weight:bold; font-size:11px;">${item["Fiyat Text"]}</td>
+                                <td><span style="color:var(--neon-orange); font-family:'JetBrains Mono'; font-weight:bold; font-size:11px;">${item["SellEnd Hex"]}</span></td>
+                                <td style="color:var(--neon-purple);">${item["Ana Kategori"]}</td>
+                                <td style="color:var(--neon-green);">${item["Alt Kategori"]}</td>
+                            </tr>
+                        `;
+            });
+
+            if (totalCount > data.length) {
+                htmlContent += `
+                            <tr>
+                                <td colspan="8" style="text-align:center; color:var(--neon-orange); padding:15px; font-weight:bold; background: rgba(0,0,0,0.8);">
+                                    ⚠️ Toplam ${totalCount.toLocaleString('tr-TR')} eşya bulundu. Tarayıcı performansını korumak için sadece ilk ${data.length} tanesi gösteriliyor. Lütfen aramanızı daraltın.
+                                </td>
+                            </tr>
+                        `;
+            }
+            tbody.innerHTML = htmlContent;
+        }
+
+        function openAddGidModal() {
+            document.getElementById('newGidNick').value = "";
+            document.getElementById('newGidHex').value = "";
+            document.getElementById('newGidDec').value = "";
+            document.getElementById('bulkGidData').value = "";
+            document.getElementById('bulkGidArea').style.display = 'none';
+            document.getElementById('addGidModal').style.display = 'flex';
+        }
+
+        function closeAddGidModal() {
+            document.getElementById('addGidModal').style.display = 'none';
+        }
+
+        function autoCalculateDec() {
+            const hexInput = document.getElementById('newGidHex').value.replace(/\s+/g, '').toUpperCase();
+            if (hexInput.length === 8) {
+                try {
+                    const reversedHex = hexInput.match(/.{1,2}/g).reverse().join('');
+                    const decValue = parseInt(reversedHex, 16);
+                    document.getElementById('newGidDec').value = decValue;
+                } catch (e) {
+                    document.getElementById('newGidDec').value = "Geçersiz Hex";
+                }
+            } else {
+                document.getElementById('newGidDec').value = "";
+            }
+        }
+
+        function saveManualGid() {
+            const nick = document.getElementById('newGidNick').value.trim();
+            const hex = document.getElementById('newGidHex').value.replace(/\s+/g, '').toUpperCase();
+            let dec = document.getElementById('newGidDec').value.trim();
+
+            if (!nick || !hex) return alert("Lütfen Nickname ve Hex alanlarını doldurun!");
+            if (hex.length !== 8) return alert("Hex kodu tam olarak 8 karakter olmalıdır!");
+            if (!dec) dec = "Bilinmiyor";
+
+            addDbGid(hex, nick, dec);
+            closeAddGidModal();
+            alert("Oyuncu başarıyla KALICI veritabanına eklendi!");
+        }
+
+        function toggleBulkGidArea() {
+            const area = document.getElementById('bulkGidArea');
+            area.style.display = area.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function saveBulkGid() {
+            const rawData = document.getElementById('bulkGidData').value;
+            if (!rawData.trim()) return alert("Lütfen veri girin.");
+
+            const lines = rawData.split('\n');
+            let addedCount = 0;
+
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                const parts = line.split(/\t+/);
+                let finalParts = parts.length >= 3 ? parts : line.trim().split(/\s+/);
+
+                if (finalParts.length >= 3) {
+                    const nick = finalParts[0].trim();
+                    const dec = finalParts[1].trim();
+                    const hex = finalParts[2].trim().toUpperCase();
+
+                    if (hex.length === 8) {
+                        addDbGid(hex, nick, dec, true);
+                        addedCount++;
+                    }
+                }
+            });
+
+            if (addedCount > 0) {
+                renderGidTable();
+                document.getElementById('bulkGidData').value = "";
+                document.getElementById('bulkGidArea').style.display = "none";
+                alert(`${addedCount} adet oyuncu başarıyla KALICI DB'ye eklendi!`);
+            } else {
+                alert("Geçerli formatta veri bulunamadı. Lütfen kopyaladığınız listeyi kontrol edin.");
+            }
+        }
+
+        async function searchApiAndFilter(event) {
+            filterTable('gidTableBody', 1, 'gidSearch');
+            updateSummary();
+
+            if (event.key === "Enter") {
+                const searchQuery = document.getElementById('gidSearch').value.trim();
+                if (!searchQuery) return;
+
+                const loader = document.getElementById('apiLoader');
+                loader.style.display = 'block';
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/gids?search=${encodeURIComponent(searchQuery)}`, {
+                        method: "GET",
+                        headers: { "x-search-password": API_PASSWORD }
+                    });
+
+                    const json = await response.json();
+
+                    if (json.success && json.data && json.data.rows && json.data.rows.length > 0) {
+                        let addedCount = 0;
+
+                        json.data.rows.forEach(player => {
+                            let hex = player.gid_hex.toUpperCase();
+                            let nick = player.name;
+                            let dec = player.gid_decimal;
+
+                            if (hex.length === 8) {
+                                addDbGid(hex, nick, dec, true);
+                                addedCount++;
+                            }
+                        });
+
+                        if (addedCount > 0) {
+                            renderGidTable();
+                            filterTable('gidTableBody', 1, 'gidSearch');
+                            console.log(`API'den ${addedCount} yeni oyuncu KALICI listeye eklendi.`);
+                        }
+                    }
+                } catch (error) {
+                    console.error("API Bağlantı Hatası:", error);
+                } finally {
+                    loader.style.display = 'none';
+                }
+            }
+        }
+
+        function openCategoryEditModal() {
+            populateCategorySelects();
+            document.getElementById('manageCategorySelect').value = "new";
+            loadManageItems();
+            document.getElementById('categoryEditModal').style.display = 'flex';
+        }
+
+        function loadManageItems() {
+            const cat = document.getElementById('manageCategorySelect').value;
+            const newCatArea = document.getElementById('newCategoryArea');
+            const manageItemArea = document.getElementById('manageItemArea');
+            const listDiv = document.getElementById('manageItemList');
+
+            listDiv.innerHTML = "";
+
+            if (cat === "new" || !cat) {
+                newCatArea.style.display = 'block';
+                manageItemArea.style.display = 'none';
+            } else {
+                newCatArea.style.display = 'none';
+                manageItemArea.style.display = 'flex';
+
+                if (ITEM_DATABASE[cat]) {
+                    ITEM_DATABASE[cat].forEach((item, index) => {
+                        const row = document.createElement('div');
+                        row.style.display = "flex"; row.style.justifyContent = "space-between"; row.style.alignItems = "center";
+                        row.style.borderBottom = "1px solid rgba(255,255,255,0.05)"; row.style.padding = "5px 0";
+                        row.innerHTML = `
+                                        <span style="color:var(--neon-blue);">${item.name}</span>
+                                        <span style="color:#777;">${item.hex}</span>
+                                        <button class="btn-red" style="padding: 2px 6px; font-size: 8px;" onclick="deleteDbItem('${cat}', ${index})">X</button>
+                                    `;
+                        listDiv.appendChild(row);
+                    });
+                }
+            }
+        }
+
+        function saveNewCategory() {
+            const catId = document.getElementById('newCatId').value.trim();
+            const catName = document.getElementById('newCatName').value.trim();
+            const template = document.getElementById('newCatTemplate').value.replace(/\s+/g, '').toUpperCase();
+
+            if (!catId || !catName || !template) return alert("Lütfen tüm alanları doldurun!");
+            if (!template.includes("{ITEM}")) return alert("Şablonda {ITEM} değişkeni bulunmalı!");
+
+            TEMPLATES[catId] = template;
+            localStorage.setItem('custom_templates', JSON.stringify(TEMPLATES));
+
+            if (!ITEM_DATABASE[catId]) ITEM_DATABASE[catId] = [];
+            localStorage.setItem('custom_db', JSON.stringify(ITEM_DATABASE));
+
+            CATEGORY_NAMES[catId] = `🪭 ${catName}`;
+            localStorage.setItem('category_names', JSON.stringify(CATEGORY_NAMES));
+
+            populateCategorySelects();
+            document.getElementById('manageCategorySelect').value = catId;
+            document.getElementById('dbCategory').value = catId;
+            loadManageItems();
+            alert("Kategori başarıyla oluşturuldu! Şimdi eşya ekleyebilirsiniz.");
+        }
+
+        function saveNewItem() {
+            const cat = document.getElementById('manageCategorySelect').value;
+            const name = document.getElementById('newItemName').value.trim();
+            const hex = document.getElementById('newItemHex').value.replace(/\s+/g, '').toUpperCase();
+
+            if (!cat || cat === "new") return alert("Önce bir kategori seçin.");
+            if (!name || !hex) return alert("Eşya adı ve hex kodu boş olamaz.");
+
+            ITEM_DATABASE[cat].push({ name: name, hex: hex, tpl: TEMPLATES[cat] ? cat : "general" });
+            localStorage.setItem('custom_db', JSON.stringify(ITEM_DATABASE));
+
+            document.getElementById('newItemName').value = "";
+            document.getElementById('newItemHex').value = "";
+            loadManageItems();
+            if (document.getElementById('dbCategory').value === cat) loadCategoryItems();
+        }
+
+        function toggleBulkAddArea() {
+            const area = document.getElementById('bulkAddArea');
+            area.style.display = area.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function saveBulkItems() {
+            const cat = document.getElementById('manageCategorySelect').value;
+            const rawData = document.getElementById('bulkItemData').value;
+
+            if (!cat || cat === "new") return alert("Lütfen eşyaların ekleneceği kategoriyi seçin!");
+            if (!rawData.trim()) return alert("Lütfen eklenecek eşya verilerini girin.");
+
+            const lines = rawData.split('\n');
+            let addedCount = 0;
+
+            lines.forEach(line => {
+                if (line.includes('=')) {
+                    let parts = line.split('=');
+                    let hexCode = parts[0].replace(/\s+/g, '').toUpperCase();
+                    let itemName = parts[1].trim();
+
+                    if (hexCode && itemName) {
+                        ITEM_DATABASE[cat].push({
+                            name: itemName,
+                            hex: hexCode,
+                            tpl: TEMPLATES[cat] ? cat : "general"
+                        });
+                        addedCount++;
+                    }
+                }
+            });
+
+            if (addedCount > 0) {
+                localStorage.setItem('custom_db', JSON.stringify(ITEM_DATABASE));
+                document.getElementById('bulkItemData').value = "";
+                document.getElementById('bulkAddArea').style.display = "none";
+                loadManageItems();
+                if (document.getElementById('dbCategory').value === cat) loadCategoryItems();
+                alert(`${addedCount} adet eşya başarıyla eklendi!`);
+            } else {
+                alert("Geçerli formatta eşya bulunamadı. Lütfen 'HEX = İsim' formatını kontrol edin.");
+            }
+        }
+
+        function deleteDbItem(cat, index) {
+            if (!confirm("Eşyayı silmek istediğinize emin misiniz?")) return;
+            ITEM_DATABASE[cat].splice(index, 1);
+            localStorage.setItem('custom_db', JSON.stringify(ITEM_DATABASE));
+            loadManageItems();
+            if (document.getElementById('dbCategory').value === cat) loadCategoryItems();
+        }
+
+        function deleteSelectedCategory() {
+            const cat = document.getElementById('manageCategorySelect').value;
+            if (!cat || cat === "new") return;
+            if (!confirm(`DİKKAT! '${cat}' kategorisini ve içindeki tüm eşyaları silmek istediğinize emin misiniz?`)) return;
+
+            delete ITEM_DATABASE[cat];
+            delete TEMPLATES[cat];
+            delete CATEGORY_NAMES[cat];
+
+            localStorage.setItem('custom_db', JSON.stringify(ITEM_DATABASE));
+            localStorage.setItem('custom_templates', JSON.stringify(TEMPLATES));
+            localStorage.setItem('category_names', JSON.stringify(CATEGORY_NAMES));
+
+            populateCategorySelects();
+            loadManageItems();
+            document.getElementById('dbCategory').value = "";
+            loadCategoryItems();
+        }
+
+        let selectedDbItems = [];
+
+        function loadCategoryItems() {
+            const cat = document.getElementById('dbCategory').value;
+
+            if (cat === 'server_db') {
+                renderGameDatabaseItems(globalGameItems.slice(0, 100));
+                return;
+            }
+
+            const listDiv = document.getElementById('dbItemList');
+            listDiv.innerHTML = "";
+
+            if (!cat) {
+                listDiv.innerHTML = '<div style="text-align:center; color:#777; margin-top:20px; font-style:italic;">Kategori seçimi bekleniyor...</div>';
+                return;
+            }
+
+            const items = ITEM_DATABASE[cat] || [];
+            items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'db-item-btn';
+                btn.innerText = item.name;
+
+                const itemTpl = TEMPLATES[cat] ? cat : (item.tpl || "general");
+
+                if (selectedDbItems.findIndex(i => i.hex === item.hex) > -1) {
+                    btn.style.borderColor = 'var(--neon-green)';
+                    btn.style.color = 'var(--neon-green)';
+                    btn.style.background = 'rgba(74, 222, 128, 0.1)';
+                }
+
+                btn.onclick = (e) => {
+                    const existingIdx = selectedDbItems.findIndex(i => i.hex === item.hex);
+                    if (existingIdx > -1) {
+                        selectedDbItems.splice(existingIdx, 1);
+                        e.target.style.borderColor = 'rgba(255,255,255,0.05)';
+                        e.target.style.color = '#ccc';
+                        e.target.style.background = 'rgba(255,255,255,0.03)';
+                    } else {
+                        selectedDbItems.push({ name: item.name, hex: item.hex, tpl: TEMPLATES[itemTpl] });
+                        e.target.style.borderColor = 'var(--neon-green)';
+                        e.target.style.color = 'var(--neon-green)';
+                        e.target.style.background = 'rgba(74, 222, 128, 0.1)';
+                    }
+                    updateSummary();
+                };
+                listDiv.appendChild(btn);
+            });
+        }
+
+        function updateSummary() {
+            let selectedGids = Array.from(document.querySelectorAll('.gid-check:checked')).map(c => c.value);
+            selectedGids = [...new Set(selectedGids)];
+
+            const countGids = selectedGids.length;
+            const countItems = selectedDbItems.length;
+
+            document.getElementById('summaryText').innerText = `Seçilen Eşya: ${countItems} | Seçilen Kişi: ${countGids}`;
+
+            let itemNames = selectedDbItems.map(i => i.name).join(", ");
+            if (itemNames.length > 50) itemNames = itemNames.substring(0, 50) + "...";
+            document.getElementById('summaryItems').innerText = itemNames;
+        }
+
+        function filterItemList() {
+            const input = normalizeString(document.getElementById('itemSearch').value);
+            const currentCat = document.getElementById('dbCategory').value;
+
+            if (currentCat === 'server_db' && globalGameItems.length > 0) {
+                if (input === "") {
+                    renderGameDatabaseItems(globalGameItems.slice(0, 100));
+                    return;
+                }
+                const filtered = globalGameItems.filter(item =>
+                    normalizeString(item.name).includes(input) ||
+                    item.hex.includes(input.toUpperCase()) ||
+                    (item.price === 0 && input.includes("bedava")) ||
+                    (item.duration === "Sınırsız" && input.includes("sınır"))
+                );
+                renderGameDatabaseItems(filtered.slice(0, 100));
+            }
+            else {
+                const btns = document.getElementById('dbItemList').getElementsByTagName('button');
+                for (let btn of btns) {
+                    let normalizedBtnText = normalizeString(btn.innerText);
+                    btn.style.display = normalizedBtnText.includes(input) ? "" : "none";
+                }
+            }
+        }
+
+        function sendDbItemToSelected(isAll) {
+            if (selectedDbItems.length === 0) return alert("Lütfen veritabanından en az bir eşya seçin.");
+
+            let finalHexes = "";
+            let targetGids = [];
+
+            const requiresGid = selectedDbItems.some(item => item.tpl.includes("{GID}"));
+
+            if (requiresGid) {
+                if (isAll) {
+                    targetGids = Object.keys(gidMap);
+                    if (targetGids.length === 0) return alert("Veritabanında hiç oyuncu yok!");
+                } else {
+                    targetGids = Array.from(document.querySelectorAll('.gid-check:checked')).map(c => c.value);
+                    targetGids = [...new Set(targetGids)];
+                    if (targetGids.length === 0) return alert("Lütfen sol listeden oyuncu seçin! (Bu eşya hedef oyuncu gerektirir)");
+                }
+            }
+
+            selectedDbItems.forEach(itemObj => {
+                let template = itemObj.tpl.replace(/\{ITEM\}/g, itemObj.hex);
+
+                if (template.includes("{GID}")) {
+                    targetGids.forEach(gid => {
+                        finalHexes += template.replace(/\{GID\}/g, gid) + "\n";
+                    });
+                } else {
+                    finalHexes += template + "\n";
+                }
+            });
+
+            document.getElementById('rawHex').value = finalHexes.trim();
+            document.getElementById('injectDir').value = "C2S";
+
+            selectedDbItems = [];
+            updateSummary();
+            loadCategoryItems();
+
+            switchTab('main');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.wrapper').forEach(w => w.classList.remove('active-tab'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active-tab');
+            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+        }
+
+        function togglePanel(id) { const p = document.getElementById(id); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
+        function setFilter(f) { currentFilter = f; document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); document.getElementById(f).classList.add('active'); }
+        function clearLogs() { document.getElementById('logs').innerHTML = ''; }
+        function toggleSort() { sortTop = !sortTop; document.getElementById('sortBtn').innerText = sortTop ? "🔃 ÜST" : "🔃 ALT"; }
+        function togglePause() { isPaused = !isPaused; const btn = document.getElementById('pauseBtn'); btn.innerText = isPaused ? "▶ BAŞLAT" : "⏸ DURDUR"; btn.className = isPaused ? "chip paused" : "chip running"; }
+
+        function filterTable(tbodyId, colIdx, inputId) {
+            let input = normalizeString(document.getElementById(inputId).value);
+            let rows = document.getElementById(tbodyId).getElementsByTagName('tr');
+            for (let row of rows) {
+                let targetCell = row.getElementsByTagName('td')[colIdx];
+                if (targetCell) {
+                    let cellText = normalizeString(targetCell.textContent);
+                    if (row.className.includes('db-row') || !row.className.includes('detail-row')) {
+                        row.style.display = cellText.includes(input) ? "" : "none";
+                        let nextRow = row.nextElementSibling;
+                        if (nextRow && nextRow.className.includes('detail-row')) {
+                            nextRow.style.display = "none";
+                            nextRow.classList.remove('open');
+                        }
+                    }
+                }
+            }
+        }
+
+        function injectPacket() {
+            let hex = document.getElementById('rawHex').value.replace(/\s+/g, '').toUpperCase();
+            const v = document.getElementById('hexVar').value;
+            if (v && hex.includes("XX")) hex = hex.split("XX").join(v);
+            fetch('/inject-packet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dir: document.getElementById('injectDir').value, hex, isBulk: false }) });
+        }
+
+        function injectBulkPacket() {
+            let hex = document.getElementById('rawHex').value.replace(/\s+/g, '').toUpperCase();
+            const v = document.getElementById('hexVar').value;
+            if (v && hex.includes("XX")) hex = hex.split("XX").join(v);
+            fetch('/inject-packet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dir: document.getElementById('injectDir').value, hex, isBulk: true }) });
+        }
+
+        function toggleAllGids() {
+            const state = document.getElementById('selectAllGid').checked;
+            document.querySelectorAll('#gidTableBody .gid-check').forEach(c => c.checked = state);
+            updateSummary();
+        }
+
+        function toggleAllRecent() {
+            const state = document.getElementById('selectAllRecent').checked;
+            document.querySelectorAll('#recentGidTableBody .gid-check').forEach(c => c.checked = state);
+            updateSummary();
+        }
+
+        function toggleGidDetail(rowId) {
+            const detailRow = document.getElementById(rowId);
+            if (detailRow) {
+                if (detailRow.classList.contains('open')) {
+                    detailRow.classList.remove('open');
+                } else {
+                    document.querySelectorAll('.detail-row').forEach(row => row.classList.remove('open'));
+                    detailRow.classList.add('open');
+                }
+            }
+        }
+
+        // --- HIZLANDIRILMIŞ VE OPTİMİZE EDİLMİŞ RADAR (SON 40) RENDER ---
+        function renderRecentGidTable() {
+            let checkedGids = new Set(Array.from(document.querySelectorAll('#recentGidTableBody .gid-check:checked')).map(c => c.value));
+            let expandedRows = new Set(Array.from(document.querySelectorAll('#recentGidTableBody .detail-row.open')).map(r => r.id));
+
+            const tbody = document.getElementById('recentGidTableBody');
+            const fragment = document.createDocumentFragment();
+
+            recentGids.forEach(data => {
+                const tr = document.createElement('tr');
+                tr.className = 'db-row';
+                tr.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+                        toggleGidDetail('detail-recent-' + data.gidHex);
+                    }
+                };
+
+                let isChecked = checkedGids.has(data.gidHex) ? 'checked' : '';
+
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="gid-check" value="${data.gidHex}" onchange="updateSummary()" ${isChecked}></td>
+                    <td style="font-weight:bold; color:#fff;">${data.nickname}</td>
+                    <td style="color:var(--neon-blue); font-family: 'JetBrains Mono';">${data.gidHex}</td>
+                    <td style="color:#aaa;">${data.gidDec}</td>
+                    <td>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-purple" style="padding:4px 8px; font-size:9px;" onclick="openSingleEffect('${data.gidHex}')">ŞABLON İLE</button>
+                            <button class="btn-red" style="padding:4px 8px; font-size:9px;" onclick="executeGidDrop('${data.gidHex}', '${data.nickname}')">DÜŞÜR</button>
+                        </div>
+                    </td>`;
+
+                fragment.appendChild(tr);
+
+                const detailTr = document.createElement('tr');
+                detailTr.id = `detail-recent-${data.gidHex}`;
+                detailTr.className = 'detail-row';
+                if (expandedRows.has(detailTr.id)) {
+                    detailTr.classList.add('open');
+                }
+
+                let historyArr = data.history || [];
+                let historyHtml = historyArr.length > 0
+                    ? historyArr.map(h => `<div class="nick-chip">${h.nick} <span>${h.date}</span></div>`).join('')
+                    : '<span style="color:#555; font-size: 10px;">Geçmiş nick kaydı bulunmuyor.</span>';
+
+                detailTr.innerHTML = `
+                    <td colspan="5" style="padding: 0;">
+                        <div class="detail-panel">
+                            <div class="detail-stats">
+                                <div class="stat-box"><div class="stat-label">GID Decimal</div><div class="stat-value" style="color: var(--neon-green);">${data.gidDec}</div></div>
+                                <div class="stat-box"><div class="stat-label">GID Hex</div><div class="stat-value" style="color: var(--neon-yellow);">${data.gidHex}</div></div>
+                                <div class="stat-box"><div class="stat-label">İlk Tespit</div><div class="stat-value" style="color: #ccc;">${data.firstSeen || '-'}</div></div>
+                                <div class="stat-box"><div class="stat-label">Son Tespit</div><div class="stat-value" style="color: #ccc;">${data.lastSeen || '-'}</div></div>
+                            </div>
+                            <div class="nick-history">
+                                <div class="stat-label">Eski İsimler</div>
+                                <div class="nick-chips">${historyHtml}</div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                fragment.appendChild(detailTr);
+            });
+            
+            tbody.innerHTML = "";
+            tbody.appendChild(fragment);
+            updateSummary();
+        }
+
+        // --- HIZLANDIRILMIŞ VE OPTİMİZE EDİLMİŞ KALICI DB RENDER ---
+        function renderGidTable() {
+            let checkedGids = new Set(Array.from(document.querySelectorAll('#gidTableBody .gid-check:checked')).map(c => c.value));
+            let expandedRows = new Set(Array.from(document.querySelectorAll('#gidTableBody .detail-row.open')).map(r => r.id));
+
+            const tbody = document.getElementById('gidTableBody');
+            const fragment = document.createDocumentFragment();
+
+            // Eklenme sırasına göre en yeni en üstte
+            const entries = Object.entries(gidMap).reverse();
+
+            for (const [gidHex, data] of entries) {
+                const tr = document.createElement('tr');
+                tr.className = 'db-row';
+                tr.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+                        toggleGidDetail('detail-saved-' + gidHex);
+                    }
+                };
+
+                let isChecked = checkedGids.has(gidHex) ? 'checked' : '';
+
+                tr.innerHTML = `
+                                <td><input type="checkbox" class="gid-check" value="${gidHex}" onchange="updateSummary()" ${isChecked}></td>
+                                <td style="font-weight:bold;">${data.currentNick}</td>
+                                <td style="color:var(--neon-blue); font-family: 'JetBrains Mono';">${gidHex}</td>
+                                <td style="color:#aaa;">${data.gidDec}</td>
+                                <td>
+                                    <div style="display:flex; gap:5px;">
+                                        <button class="btn-purple" style="padding:4px 8px; font-size:9px;" onclick="openSingleEffect('${gidHex}')">ŞABLON İLE</button>
+                                        <button class="btn-red" style="padding:4px 8px; font-size:9px;" onclick="executeGidDrop('${gidHex}', '${data.currentNick}')">DÜŞÜR</button>
+                                    </div>
+                                </td>`;
+
+                fragment.appendChild(tr);
+
+                const detailTr = document.createElement('tr');
+                detailTr.id = `detail-saved-${gidHex}`;
+                detailTr.className = 'detail-row';
+                if (expandedRows.has(detailTr.id)) {
+                    detailTr.classList.add('open');
+                }
+
+                let historyArr = data.history || [];
+                let historyHtml = historyArr.length > 0
+                    ? historyArr.map(h => `<div class="nick-chip">${h.nick} <span>${h.date}</span></div>`).join('')
+                    : '<span style="color:#555; font-size: 10px;">Geçmiş nick kaydı bulunmuyor.</span>';
+
+                detailTr.innerHTML = `
+                    <td colspan="5" style="padding: 0;">
+                        <div class="detail-panel">
+                            <div class="detail-stats">
+                                <div class="stat-box"><div class="stat-label">GID Decimal</div><div class="stat-value" style="color: var(--neon-green);">${data.gidDec}</div></div>
+                                <div class="stat-box"><div class="stat-label">GID Hex</div><div class="stat-value" style="color: var(--neon-yellow);">${gidHex}</div></div>
+                                <div class="stat-box"><div class="stat-label">DB'ye Eklenme</div><div class="stat-value" style="color: #ccc;">${data.firstSeen}</div></div>
+                                <div class="stat-box"><div class="stat-label">Son Güncelleme</div><div class="stat-value" style="color: #ccc;">${data.lastSeen}</div></div>
+                            </div>
+                            <div class="nick-history">
+                                <div class="stat-label">Eski İsimler</div>
+                                <div class="nick-chips">${historyHtml}</div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                fragment.appendChild(detailTr);
+            }
+            
+            tbody.innerHTML = "";
+            tbody.appendChild(fragment);
+            updateSummary();
+        }
+
+        // --- OTONOM GID & İSİM TARAYICI (Arka Planda Sessizce Çalişir) ---
+        socket.on('packet_data', (data) => {
+            if (isPaused) return;
+            if (currentFilter !== 'ALL' && data.dir !== currentFilter) return;
+
+            packetCount++;
+
+            let cleanHex = data.hex.replace(/[\s\n\r]/g, "").toUpperCase();
+
+            setTimeout(() => {
+                let searchLimit = Math.min(cleanHex.length - 4, cleanHex.length);
+                let addedAny = false;
+                
+                for (let i = 0; i < searchLimit; i += 2) {
+                    let possibleGidHex = cleanHex.substr(i, 8);
+                    if (possibleGidHex.length < 8) continue;
+
+                    let reversedHex = possibleGidHex.match(/.{1,2}/g).reverse().join('');
+                    let possibleGidDec = parseInt(reversedHex, 16);
+
+                    // İSİM BULSUN VEYA BULAMASIN HER GID RADARA KAYDEDİLİR!
+                    if (possibleGidDec >= GID_RANGE.MIN && possibleGidDec <= GID_RANGE.MAX) {
+                        let foundName = extractNameFromHex(cleanHex, i);
+                        addRecentGid(possibleGidHex, foundName, possibleGidDec, true);
+                        addedAny = true;
+                    }
+                }
+                
+                // Eğer döngü hiçbir şey bulamadıysa ama paketin en başında valid GID varsa onu da atlamayalım
+                if (!addedAny) {
+                    let firstHex = cleanHex.substr(0, 8);
+                    if (firstHex.length === 8) {
+                        let reversedFirst = firstHex.match(/.{1,2}/g).reverse().join('');
+                        let possibleGidDec = parseInt(reversedFirst, 16);
+                        if (possibleGidDec >= GID_RANGE.MIN && possibleGidDec <= GID_RANGE.MAX) {
+                             addRecentGid(firstHex, "Bilinmiyor", possibleGidDec, true);
+                             addedAny = true;
+                        }
+                    }
+                }
+                
+                if(addedAny) renderRecentGidTable();
+            }, 0); 
+
+            let matchRegex = /([0-9A-F]{4})(B[0-2]|AF)F200/g;
+            let targetGidDetected = false;
+            let detectedGidHex = "";
+            let match;
+            let addedFromRegex = false;
+
+            while ((match = matchRegex.exec(cleanHex)) !== null) {
+                let rawGid = match[1] + match[2] + "F2";
+
+                let reversedHex = rawGid.match(/.{1,2}/g).reverse().join('');
+                let possibleGidDec = parseInt(reversedHex, 16);
+
+                if (possibleGidDec >= GID_RANGE.MIN && possibleGidDec <= GID_RANGE.MAX) {
+                    targetGidDetected = true;
+                    detectedGidHex = rawGid;
+                    
+                    let foundName = extractNameFromHex(cleanHex, match.index);
+                    addRecentGid(rawGid, foundName, possibleGidDec, true);
+                    addedFromRegex = true;
+                    break;
+                }
+            }
+            if(addedFromRegex) renderRecentGidTable();
+
+            const row = document.createElement('div');
+
+            let rowClass = `packet-row ${data.dir.toLowerCase()}-row`;
+            if (cleanHex.includes("AEE9AF2F")) rowClass += " my-id-row";
+
+            if (targetGidDetected) {
+                rowClass += " target-gid-match";
+            }
+
+            row.className = rowClass;
+            row.style.display = "flex";
+            row.style.alignItems = "flex-start";
+            row.style.cursor = "default";
+
+            const dirTag = document.createElement('strong');
+            dirTag.style.marginRight = "8px";
+            dirTag.style.opacity = "0.8";
+            dirTag.style.flexShrink = "0";
+            dirTag.innerText = `[${data.dir}]`;
+
+            const btnContainer = document.createElement('div');
+            btnContainer.style.flex = "1";
+            btnContainer.style.position = "relative";
+
+            const hexBtn = document.createElement('button');
+            hexBtn.className = "hex-text-btn";
+            hexBtn.title = "Detayları Görüntüle";
+            hexBtn.innerText = data.hex;
+
+            hexBtn.onclick = () => window.openHexDetail(data.hex, targetGidDetected ? detectedGidHex : null);
+
+            btnContainer.appendChild(hexBtn);
+            row.appendChild(dirTag);
+            row.appendChild(btnContainer);
+
+            const logs = document.getElementById('logs');
+            if (sortTop) logs.prepend(row); else logs.appendChild(row);
+            
+            if (logs.childNodes.length > 1000) logs.lastChild.remove();
+        });
+
+        // Backend'den (Server.js) doğrudan gelen bilgileri de Güncel Radara ekliyoruz. (DB bağımsız)
+        socket.on('gid_data', (data) => {
+            if (data && data.gidHex && data.gidDec) {
+                addRecentGid(data.gidHex, data.nickname, data.gidDec);
+            }
+        });
+
+        function pushRulesToEngine() {
+            const db = JSON.parse(localStorage.getItem('rules_db') || '[]');
+            db.forEach(item => { if (item.active) fetch('/set-rule', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dir: item.dir, f: item.f.replace(/\s+/g, ''), r: item.r.replace(/\s+/g, '') }) }); });
+        }
+        function applyRuleTemporary(dir) { fetch('/set-rule', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dir, f: document.getElementById(dir.toLowerCase() + 'f').value.toUpperCase(), r: document.getElementById(dir.toLowerCase() + 'r').value.toUpperCase() }) }); alert("Kural Uygulandı!"); }
+        function openSaveRuleModal(dir) { currentSaveDir = dir; document.getElementById('saveModalDir').value = dir; document.getElementById('saveModalFind').value = document.getElementById(dir.toLowerCase() + 'f').value; document.getElementById('saveModalReplace').value = document.getElementById(dir.toLowerCase() + 'r').value; document.getElementById('ruleSaveModal').style.display = 'flex'; }
+        function confirmSaveRule() { const db = JSON.parse(localStorage.getItem('rules_db') || '[]'); db.push({ active: true, name: document.getElementById('saveModalName').value, dir: currentSaveDir, f: document.getElementById('saveModalFind').value.replace(/\s+/g, '').toUpperCase(), r: document.getElementById('saveModalReplace').value.replace(/\s+/g, '').toUpperCase() }); localStorage.setItem('rules_db', JSON.stringify(db)); renderRulesDB(); pushRulesToEngine(); document.getElementById('ruleSaveModal').style.display = 'none'; }
+        function renderRulesDB() { const db = JSON.parse(localStorage.getItem('rules_db') || '[]'); const tbody = document.getElementById('rulesTableBody'); tbody.innerHTML = ""; db.forEach((item, i) => { const r = document.createElement('tr'); r.className = 'db-row'; r.innerHTML = `<td><input type="checkbox" ${item.active ? 'checked' : ''} onchange="toggleRuleActive(${i})"></td><td>${item.name}</td><td>${item.dir}</td><td><div style="display:flex; gap:4px;"><button onclick="openEditModal('RULE', ${i})" class="btn-blue" style="padding:4px 8px; font-size:10px;">EDİT</button><button onclick="deleteRule(${i})" class="btn-red" style="padding:4px 8px; font-size:10px;">SİL</button></div></td>`; tbody.appendChild(r); }); }
+        function toggleRuleActive(i) { const db = JSON.parse(localStorage.getItem('rules_db')); db[i].active = !db[i].active; localStorage.setItem('rules_db', JSON.stringify(db)); pushRulesToEngine(); }
+        function openSaveOptionsModal() { if (!document.getElementById('rawHex').value) return; document.getElementById('saveOptionsModal').style.display = 'flex'; }
+        function confirmSaveOption() { const n = document.getElementById('saveOptionName').value || "Yeni Kayıt", t = document.getElementById('saveOptionTarget').value, h = document.getElementById('rawHex').value.replace(/\s+/g, '').toUpperCase(), d = document.getElementById('injectDir').value, key = (t === "HEX") ? 'hex_db' : 'gid_code_db'; const db = JSON.parse(localStorage.getItem(key) || '[]'); db.push({ name: n, hex: h, dir: d }); localStorage.setItem(key, JSON.stringify(db)); if (t === "HEX") renderHexDB(); document.getElementById('saveOptionsModal').style.display = 'none'; }
+        function renderHexDB() { const db = JSON.parse(localStorage.getItem('hex_db') || '[]'); const tbody = document.getElementById('hexTableBody'); tbody.innerHTML = ""; db.forEach((item, i) => { const r = document.createElement('tr'); r.className = 'db-row'; r.innerHTML = `<td>${item.name}</td><td>${item.dir}</td><td><div style="display:flex; gap:4px;"><button class="btn-green" style="padding:4px 8px; font-size:10px;" onclick="loadHex(${i})">YÜKLE</button><button onclick="openEditModal('HEX', ${i})" class="btn-blue" style="padding:4px 8px; font-size:10px;">EDİT</button><button class="btn-red" style="padding:4px 8px; font-size:10px;" onclick="deleteHex(${i})">SİL</button></div></td>`; tbody.appendChild(r); }); }
+        function loadHex(i) { const db = JSON.parse(localStorage.getItem('hex_db')); document.getElementById('rawHex').value = db[i].hex; document.getElementById('injectDir').value = db[i].dir; switchTab('main'); }
+
+        function openBatchModal(selectionMode) {
+            isSelectionMode = selectionMode; tempSingleGid = null;
+            const db = JSON.parse(localStorage.getItem('gid_code_db') || '[]');
+            const tbody = document.getElementById('batchTableBody'); tbody.innerHTML = "";
+            db.forEach((item, i) => { const r = document.createElement('tr'); r.innerHTML = `<td>${item.name}</td><td><button class="btn-purple" style="padding:4px 8px; font-size:10px;" onclick="executeBatch(${i})">SEÇ</button></td><td><button class="btn-blue" style="padding:4px 8px; font-size:10px;" onclick="openEditModal('BATCH', ${i})">EDİT</button></td><td><button class="btn-red" style="padding:4px 8px; font-size:10px;" onclick="deleteBatch(${i})">X</button></td>`; tbody.appendChild(r); });
+            document.getElementById('batchModal').style.display = 'flex';
+        }
+
+        function openSingleEffect(gid) {
+            tempSingleGid = gid; isSelectionMode = false;
+            const db = JSON.parse(localStorage.getItem('gid_code_db') || '[]');
+            const tbody = document.getElementById('batchTableBody'); tbody.innerHTML = "";
+            db.forEach((item, i) => { const r = document.createElement('tr'); r.innerHTML = `<td>${item.name}</td><td><button class="btn-purple" style="padding:4px 8px; font-size:10px;" onclick="executeBatch(${i})">BU ŞABLONU KULLAN</button></td><td><button class="btn-blue" style="padding:4px 8px; font-size:10px;" onclick="openEditModal('BATCH', ${i})">EDİT</button></td><td><button class="btn-red" style="padding:4px 8px; font-size:10px;" onclick="deleteBatch(${i})">X</button></td>`; tbody.appendChild(r); });
+            document.getElementById('batchModal').style.display = 'flex';
+        }
+
+        function executeBatch(index) {
+            const db = JSON.parse(localStorage.getItem('gid_code_db'));
+            const code = db[index].hex.replace(/\s+/g, '');
+            let result = "";
+            if (tempSingleGid !== null) {
+                result = code.replace(/XXXXXXXX/gi, tempSingleGid);
+                tempSingleGid = null;
+            } else if (isSelectionMode) {
+                let selected = Array.from(document.querySelectorAll('.gid-check:checked')).map(c => c.value);
+                selected = [...new Set(selected)];
+                if (selected.length === 0) return alert("Kimse seçilmedi!");
+                selected.forEach(gid => result += code.replace(/XXXXXXXX/gi, gid) + "\n");
+            } else {
+                Object.keys(gidMap).forEach(gid => result += code.replace(/XXXXXXXX/gi, gid) + "\n");
+            }
+            document.getElementById('rawHex').value = result; document.getElementById('injectDir').value = db[index].dir;
+            document.getElementById('batchModal').style.display = 'none'; switchTab('main');
+        }
+
+        function closeBatchModal() { document.getElementById('batchModal').style.display = 'none'; tempSingleGid = null; }
+        function openEditModal(type, index) {
+            currentEditInfo = { type, index };
+            let dbName = (type === 'HEX') ? 'hex_db' : (type === 'RULE' ? 'rules_db' : 'gid_code_db');
+            let data = JSON.parse(localStorage.getItem(dbName))[index];
+            document.getElementById('modalName').value = data.name; document.getElementById('modalDir').value = data.dir;
+            if (type === 'RULE') { document.getElementById('modalHex').value = data.f; document.getElementById('modalReplace').value = data.r; document.getElementById('modalReplaceArea').style.display = 'block'; document.getElementById('modalFindLabel').innerText = "Aranan Hex"; }
+            else { document.getElementById('modalHex').value = data.hex; document.getElementById('modalReplaceArea').style.display = 'none'; document.getElementById('modalFindLabel').innerText = "Hex Kodu"; }
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        function saveEditChanges() {
+            const { type, index } = currentEditInfo;
+            let dbName = (type === 'HEX') ? 'hex_db' : (type === 'RULE' ? 'rules_db' : 'gid_code_db');
+            let db = JSON.parse(localStorage.getItem(dbName));
+            db[index].name = document.getElementById('modalName').value; db[index].dir = document.getElementById('modalDir').value;
+            if (type === 'RULE') { db[index].f = document.getElementById('modalHex').value.replace(/\s+/g, '').toUpperCase(); db[index].r = document.getElementById('modalReplace').value.replace(/\s+/g, '').toUpperCase(); }
+            else { db[index].hex = document.getElementById('modalHex').value.replace(/\s+/g, '').toUpperCase(); }
+            localStorage.setItem(dbName, JSON.stringify(db));
+            if (type === 'HEX') renderHexDB(); else if (type === 'RULE') { renderRulesDB(); pushRulesToEngine(); } else if (type === 'BATCH') openBatchModal(isSelectionMode);
+            closeEditModal();
+        }
+
+        function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+        function deleteRule(i) { let db = JSON.parse(localStorage.getItem('rules_db')); db.splice(i, 1); localStorage.setItem('rules_db', JSON.stringify(db)); renderRulesDB(); pushRulesToEngine(); }
+        function deleteHex(i) { let db = JSON.parse(localStorage.getItem('hex_db')); db.splice(i, 1); localStorage.setItem('hex_db', JSON.stringify(db)); renderHexDB(); }
+        function deleteBatch(i) { let db = JSON.parse(localStorage.getItem('gid_code_db')); db.splice(i, 1); localStorage.setItem('gid_code_db', JSON.stringify(db)); openBatchModal(isSelectionMode); }
+        function executeGidDrop(hex, nick) { currentDropFullHex = hex; currentDropType = (hex.charAt(4).toUpperCase() === 'B') ? 'B' : 'A'; document.getElementById('dropContent').innerHTML = `<span style="color:var(--neon-green)">${nick}</span> hedef alındı!`; document.getElementById('dropModal').style.display = 'flex'; }
+        function executeDrop() { let crash = (currentDropType === 'A') ? "FFFE012D0000002E000000193600100000004200610073006500500072006F0063008B71B02F20160300" + currentDropFullHex.substring(0, 6) + "60070701A872C3ED2B080001FEFF" : "FFFE012C0000002E000000193600100000004200610073006500500072006F0063008071B02F20160200" + currentDropFullHex.substring(0, 4) + "80070701A872C3ED2B080001FEFF"; let p = ""; for (let i = 1; i <= 3000; i++) { p += (i % 100 === 0) ? "FFFE0100000000170000002200100000004200610073006500500072006F0063000201FEFF\n" : crash + "\n"; } document.getElementById('rawHex').value = p; document.getElementById('injectDir').value = "C2S"; document.getElementById('dropModal').style.display = 'none'; switchTab('main'); }
+
+        function renderQueueList() {
+            const listDiv = document.getElementById('loopQueueItems');
+            const container = document.getElementById('queueListContainer');
+
+            if (loopQueue.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            listDiv.innerHTML = '';
+
+            loopQueue.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'queue-item';
+                div.innerHTML = `
+                                <div>Sıra #${index + 1}: [${item.dir}] <span>${item.startHex} - ${item.endHex}</span></div>
+                                <div style="color:var(--neon-green);">Bkl.</div>
+                            `;
+                listDiv.appendChild(div);
+            });
+        }
+
+        function addLoopToQueue() {
+            const raw = document.getElementById('rawHex').value.replace(/\s+/g, '');
+            const dir = document.getElementById('injectDir').value;
+            const match = raw.match(/x+/gi);
+
+            if (!match) return alert("Sıraya eklenecek Hex'te 'XX' değişkeni bulunamadı!");
+
+            const startHex = document.getElementById('incStart').value;
+            const endHex = document.getElementById('incEnd').value;
+            const delay = parseInt(document.getElementById('incDelay').value);
+
+            loopQueue.push({
+                rawHex: raw,
+                dir: dir,
+                placeholder: match[0],
+                targetLen: match[0].length,
+                startHex: startHex,
+                endHex: endHex,
+                start: parseInt(startHex, 16),
+                end: parseInt(endHex, 16),
+                delay: delay
+            });
+
+            renderQueueList();
+            document.getElementById('rawHex').value = "";
+        }
+
+        function processNextInQueue() {
+            if (loopQueue.length === 0) {
+                isLooping = false;
+                document.getElementById('startIncBtn').style.display = 'block';
+                document.getElementById('stopIncBtn').style.display = 'none';
+                return;
+            }
+
+            isLooping = true;
+            const currentTask = loopQueue.shift();
+            renderQueueList();
+
+            let curr = currentTask.start;
+            const stopBtn = document.getElementById('stopIncBtn');
+
+            activeIncInterval = setInterval(() => {
+                if (curr > currentTask.end) {
+                    clearInterval(activeIncInterval);
+                    processNextInQueue();
+                    return;
+                }
+
+                let hexStr = curr.toString(16).toUpperCase().padStart(currentTask.targetLen, '0');
+                document.getElementById('incCounterTxt').innerText = `Durum: ${hexStr} / ${currentTask.endHex.padStart(currentTask.targetLen, '0')} (Kuyruk: ${loopQueue.length})`;
+
+                fetch('/inject-packet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dir: currentTask.dir,
+                        hex: currentTask.rawHex.replaceAll(currentTask.placeholder, hexStr),
+                        isBulk: false
+                    })
+                });
+                curr++;
+            }, currentTask.delay);
+        }
+
+        function runInterval() {
+            const c = parseInt(document.getElementById('intCount').value), d = parseInt(document.getElementById('intDelay').value);
+            let s = 0;
+            document.getElementById('startIntBtn').style.display = 'none';
+            document.getElementById('stopIntBtn').style.display = 'block';
+
+            activeInterval = setInterval(() => {
+                if (s >= c) { stopInterval(); return; }
+                injectPacket();
+                s++;
+                document.getElementById('intCounterTxt').innerText = `Durum: ${s} / ${c}`;
+            }, d);
+        }
+
+        function stopInterval() {
+            clearInterval(activeInterval);
+            document.getElementById('startIntBtn').style.display = 'block';
+            document.getElementById('stopIntBtn').style.display = 'none';
+        }
+
+        function runIncremental() {
+            if (isLooping) return alert("Şu an zaten bir döngü çalışıyor. Görevi sıraya ekleyin.");
+
+            const raw = document.getElementById('rawHex').value.replace(/\s+/g, '');
+            if (raw) {
+                const dir = document.getElementById('injectDir').value;
+                const match = raw.match(/x+/gi);
+                if (!match) return alert("XX Yok!");
+
+                const startHex = document.getElementById('incStart').value;
+                const endHex = document.getElementById('incEnd').value;
+                const delay = parseInt(document.getElementById('incDelay').value);
+
+                loopQueue.unshift({
+                    rawHex: raw,
+                    dir: dir,
+                    placeholder: match[0],
+                    targetLen: match[0].length,
+                    startHex: startHex,
+                    endHex: endHex,
+                    start: parseInt(startHex, 16),
+                    end: parseInt(endHex, 16),
+                    delay: delay
+                });
+            }
+
+            if (loopQueue.length === 0) return alert("Çalıştırılacak veya sıraya eklenmiş bir görev yok!");
+
+            document.getElementById('startIncBtn').style.display = 'none';
+            document.getElementById('stopIncBtn').style.display = 'block';
+
+            processNextInQueue();
+        }
+
+        function stopIncremental() {
+            clearInterval(activeIncInterval);
+            isLooping = false;
+            document.getElementById('startIncBtn').style.display = 'block';
+            document.getElementById('stopIncBtn').style.display = 'none';
+        }
+
+        function addTrigger() { const name = document.getElementById('trigName').value, tHex = document.getElementById('trigListen').value.replace(/\s+/g, '').toUpperCase(), rHex = document.getElementById('trigResp').value.replace(/\s+/g, '').toUpperCase(), tDir = document.getElementById('trigListenDir').value, rDir = document.getElementById('trigRespDir').value, delay = parseInt(document.getElementById('trigDelay').value) || 0; if (!name || !tHex || !rHex) return; const db = JSON.parse(localStorage.getItem('trigger_db') || '[]'); db.push({ id: Date.now(), active: true, name, tHex, rHex, tDir, rDir, delay }); localStorage.setItem('trigger_db', JSON.stringify(db)); renderTriggers(); pushTriggersToEngine(); }
+        function renderTriggers() { const db = JSON.parse(localStorage.getItem('trigger_db') || '[]'); const tbody = document.getElementById('triggerTableBody'); tbody.innerHTML = ""; db.forEach((t, i) => { const row = document.createElement('tr'); row.innerHTML = `<td><label class="switch"><input type="checkbox" ${t.active ? 'checked' : ''} onchange="toggleTriggerState(${i})"><span class="slider"></span></label></td><td>${t.name}</td><td><button onclick="deleteTrigger(${i})" class="btn-red">X</button></td>`; tbody.appendChild(row); }); }
+        function toggleTriggerState(i) { const db = JSON.parse(localStorage.getItem('trigger_db')); db[i].active = !db[i].active; localStorage.setItem('trigger_db', JSON.stringify(db)); pushTriggersToEngine(); }
+        function deleteTrigger(i) { const db = JSON.parse(localStorage.getItem('trigger_db')); db.splice(i, 1); localStorage.setItem('trigger_db', JSON.stringify(db)); renderTriggers(); pushTriggersToEngine(); }
+        function pushTriggersToEngine() { const db = JSON.parse(localStorage.getItem('trigger_db') || '[]'); fetch('/update-triggers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ triggers: db.filter(t => t.active) }) }); }
+
+        function convertGoodsId() {
+            let input = document.getElementById('convGoodsId').value.trim();
+
+            if (!input) return alert("Lütfen bir GoodsID girin!");
+            if (!/^\d+$/.test(input)) return alert("Lütfen sadece rakam girin!");
+
+            try {
+                let bigIntVal = BigInt(input);
+                let hexStr = bigIntVal.toString(16).toUpperCase();
+                hexStr = hexStr.padStart(16, '0');
+                let littleEndian = hexStr.match(/.{1,2}/g).reverse().join('');
+                document.getElementById('convResult').value = littleEndian;
+            } catch (e) {
+                alert("Çevirme hatası! Sayı sınırları aşılmış olabilir.");
+            }
+        }
+
+        window.onload = async () => {
+            populateCategorySelects();
+            recentGids = [];
+            renderRecentGidTable();
+            renderGidTable();
+            renderHexDB();
+            renderRulesDB();
+            renderTriggers();
+            pushTriggersToEngine();
+
+            setInterval(() => {
+                const ppsEl = document.getElementById('ppsCounter');
+                if (ppsEl) ppsEl.innerText = packetCount + " PPS";
+                packetCount = 0;
+            }, 1000);
+
+            await fetchGameDatabase();
+            await fetchUltimateData();
+        };
+    </script>
+</body>
+</html>
